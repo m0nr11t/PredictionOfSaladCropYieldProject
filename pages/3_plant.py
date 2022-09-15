@@ -1,7 +1,7 @@
 import streamlit as st
 import pyautogui
-from calculate import timestamp
-from sql_execute import plant_tb_insert
+from calculate import timestamp, load_image
+from sql_execute import plant_tb_insert, plant_tb_select, select_pil
 st.set_page_config(
     page_title="พืช",
     page_icon="🌱",
@@ -20,30 +20,31 @@ def main():
 def create_page():
     with st.form("plant_form",clear_on_submit=True):
         plant_name = st.text_input(label="ชื่อพืช")
-        uploaded_file = st.file_uploader(label="แนบภาพไฟล์รูป",type=["jpg","png","jpeg"], accept_multiple_files=False)
-        if uploaded_file is not None:
-            bytes_data = uploaded_file.read()
-            st.write("filename:", uploaded_file.name)
-            st.write(bytes_data)
+        image_file = st.file_uploader(label="แนบภาพไฟล์รูป",type=["jpg","png","jpeg"], accept_multiple_files=False)
+        if image_file is not None:
+            image_file = load_image(image_file)
+        else:
+            load_image('none.png')
         col1, col2, col3 = st.columns([2,1,2])
         with col2:
             submit_button_clicked = st.form_submit_button(label="เพิ่มข้อมูล")
         if submit_button_clicked:
             created_at = timestamp()
             updated_at = created_at
-            plant_tb_insert(plant_name, bytes_data, created_at, updated_at)
-            st.success("เพิ่มข้อมูลสำเร็จ!")
+            plant_tb_insert(plant_name, image_file, created_at, updated_at)
+            st.success("เพิ่มข้อมูล พืช{} สำเร็จ!".format(plant_name))
 
 
 def update_page():
-    a = [1,"ประเภทที่ 1","ผักคะน้าฮ่องกง"]
-    b = [2,"ประเภทที่ 2","ผักบุ้ง"]
-    update_page_options = (a, b)
+    update_page_options = plant_tb_select()
     st.subheader("รายชื่อพืช")
-    plant_selected = st.selectbox(label="กรุณาเลือกพืช", options=update_page_options)
+    plant_selected = st.selectbox(label="กรุณาเลือกพืช", options=update_page_options,format_func=lambda update_page_options: "{}".format(update_page_options[1]))
+    col_left,col_right = st.columns([1,1])
+    with col_left:
+        st.image(select_pil([plant_selected[0]]),plant_selected)
     st.subheader("ข้อมูลพืช")
     if plant_selected:
-        plant_name = st.text_input(label="ชื่อพืช",value=plant_selected[2])
+        plant_name = st.text_input(label="ชื่อพืช",value=plant_selected[1])
         st.markdown("""---""")
         col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
         with col2:
@@ -51,6 +52,9 @@ def update_page():
         with col4:
             delete_button_clicked = st.button(label="ลบข้อมูล")
         if edit_button_clicked:
+            plant_id = plant_selected[0]
+            plant_name = plant_selected[1]
+            plant_tb_update(plant_id,plant_name,plant_img)
             st.success("แก้ไขข้อมูลสำเร็จ!")
         elif delete_button_clicked:
             st.error("ลบข้อมูลสำเร็จ!")
