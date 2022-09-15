@@ -9,6 +9,7 @@ st.set_page_config(
 )
 
 st.title("หน้าแรก")
+st.title("55555")
 # from streamlit_option_menu import option_menu
 # # horizontal Menu
 # selected = option_menu(None, ["เรียกดูข้อมูล", "เพิ่มข้อมูล", "แก้ไขข้อมูล"],
