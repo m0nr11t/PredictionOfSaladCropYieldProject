@@ -11,7 +11,7 @@ def db_connection():
 def test_select_independent_options():
     "This function for select data from farm's table to farmer's page"
     db_connect, c = db_connection()
-    c.execute("""SELECT column_name, column_comment FROM information_schema.columns
+    c.execute("""SELECT column_name FROM information_schema.columns
                 WHERE table_name = 'plant'
                 AND column_name IN
                     (SELECT column_name FROM information_schema.columns
@@ -70,23 +70,13 @@ def farmer_tb_insert(prename, firstname, farmer_gov_id, tel, lastname, gov_id, h
 def plant_tb_select():
     "This function for select datas from farm's table to farmer's page"
     db_connect, c = db_connection()
-    sql_statement = """SELECT plant_id, plant_name FROM plant;"""
+    sql_statement = """SELECT plant_id, plant_name FROM plant ORDER BY plant_name;"""
     c.execute(sql_statement)
     data = c.fetchall()
     db_connect.close()
     return data
 
-def plant_tb_select_img(plant_id):
-    "This function for select datas from farm's table to farmer's page"
-
-
-    value = (plant_id)
-    c.execute(sql_statement,value)
-    data = c.fetchall()
-    db_connect.close()
-    return data
-
-def select_pil(params, outfile=None):
+def plant_tb_select_pil(params, outfile=None):
     sql_statement = """SELECT img FROM plant
                         WHERE plant_id = %s;"""
     db_connect, c = db_connection()
@@ -95,7 +85,7 @@ def select_pil(params, outfile=None):
     if row:
         bytes_stream = BytesIO(row[0])
         img = Image.open(bytes_stream)
-        return img
+        return img, row
     return None
 
 def plant_tb_insert(plant_name, img, created_at, updated_at):
@@ -108,14 +98,31 @@ def plant_tb_insert(plant_name, img, created_at, updated_at):
     db_connect.commit()
     db_connect.close()
 
-def plant_tb_update(plant_id,plant_name,plant_img):
+def plant_tb_update(plant_id,plant_name,plant_img,updated_at):
     "This function fot update data to plant's table from user selected"
     db_connect, c = db_connection()
-    sql_statement = """INSERT INTO plant(plant_id, plant_name, img)
-                         VALUES (%s, %s, %s);"""
-    values = (plant_id,plant_name,plant_img)
+    sql_statement = """UPDATE plant
+                         SET plant_name = %s, img = %s, updated_at = %s
+                         WHERE plant_id = %s;"""
+    values = (plant_name,plant_img,updated_at,plant_id)
     c.execute(sql_statement, values)
     db_connect.commit()
     db_connect.close()
 
+def plant_tb_delete(plant_id):
+    "This function fot delete data to plant's table from user selected"
+    db_connect, c = db_connection()
+    c.execute("DELETE FROM plant WHERE plant_id = %s;", [plant_id])
+    db_connect.commit()
+    db_connect.close()
+
+def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at):
+    "This function for insert data to variable's table from config's page"
+    db_connect, c = db_connection()
+    sql_statement = """INSERT INTO variable(columns_name, columns_alias, columns_datatype, created_at)
+                         VALUES (%s, %s, %s, %s);"""
+    values = (columns_name, columns_alias, columns_datatype, created_at)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
 
