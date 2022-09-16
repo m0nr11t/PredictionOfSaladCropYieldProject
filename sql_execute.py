@@ -116,13 +116,28 @@ def plant_tb_delete(plant_id):
     db_connect.commit()
     db_connect.close()
 
-def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at):
-    "This function for insert data to variable's table from config's page"
+def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name):
+    "This function for insert data to variables's table from config's page"
     db_connect, c = db_connection()
-    sql_statement = """INSERT INTO variable(columns_name, columns_alias, columns_datatype, created_at)
-                         VALUES (%s, %s, %s, %s);"""
-    values = (columns_name, columns_alias, columns_datatype, created_at)
-    c.execute(sql_statement, values)
+    sql_statement = """INSERT INTO variables(columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name)
+                         VALUES (%s, %s, %s, %s, %s, %s);"""
+    values = (columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name)
+    c = c.execute(sql_statement, values)
     db_connect.commit()
     db_connect.close()
+    return c
+
+def variable_create_columns(column_table_name, column_name, column_datatype):
+    db_connect, c = db_connection()
+    c.execute("ALTER TABLE {} ADD COLUMN IF NOT EXISTS {} {};".format(column_table_name, column_name, column_datatype))
+    db_connect.commit()
+    db_connect.close()
+
+def independent_create_form(table_name):
+    db_connect, c = db_connection()
+    c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name FROM variables
+                WHERE columns_table_name = '{}';""".format(table_name))
+    data = c.fetchall()
+    db_connect.close()
+    return data
 

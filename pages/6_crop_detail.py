@@ -15,8 +15,8 @@ def create_page():
     with st.form("crop_detail",clear_on_submit=True):
         crop_id = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย",options=("รอดึงข้อมูล","รอดึงข้อมูล"))
         farmer_id = st.selectbox(label="รหัสเกษตรกร",options=("รอดึงข้อมูล","รอดึงข้อมูล"))
-        plant_weight_before_trim = st.number_input(label="น้ำหนักผลผลิตก่อนตัดแต่ง")
-        plant_weight_after_trim = st.number_input(label="น้ำหนักผลผลิตหลังตัดแต่ง")
+        plant_weight_before_trim = st.number_input(label="น้ำหนักผลผลิตก่อนตัดแต่ง",min_value=0.00)
+        plant_weight_after_trim = st.number_input(label="น้ำหนักผลผลิตหลังตัดแต่ง",min_value=0.00)
         plant_quantity = st.number_input(label="จำนวนกล้า",min_value=0,step=1)
         col1, col2 = st.columns([2, 2])
         with col1:
@@ -42,8 +42,8 @@ def update_page():
     crop_id = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย", options=(update_options))
     farmer_id = st.selectbox(label="รหัสเกษตรกร", options=(update_options))
     if farmer_id:
-        plant_weight_before_trim = st.number_input(label="น้ำหนักผลผลิตก่อนตัดแต่ง")
-        plant_weight_after_trim = st.number_input(label="น้ำหนักผลผลิตหลังตัดแต่ง")
+        plant_weight_before_trim = st.number_input(label="น้ำหนักผลผลิตก่อนตัดแต่ง",min_value=0.00)
+        plant_weight_after_trim = st.number_input(label="น้ำหนักผลผลิตหลังตัดแต่ง",min_value=0.00)
         plant_quantity = st.number_input(label="จำนวนกล้า", min_value=0, step=1)
         plant_area = st.number_input(label="พื้นที่เพาะปลูก", min_value=0, step=1)
         st.markdown("""---""")
