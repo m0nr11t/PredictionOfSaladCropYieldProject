@@ -1,6 +1,7 @@
 from postgres_con import db_local_connect
 from io import BytesIO
 from PIL import Image
+from datetime import date
 
 def db_connection():
     "This function connected postgresql database and create cursor for SQL statements support"
@@ -122,10 +123,9 @@ def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at
     sql_statement = """INSERT INTO variables(columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name)
                          VALUES (%s, %s, %s, %s, %s, %s);"""
     values = (columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name)
-    c = c.execute(sql_statement, values)
+    c.execute(sql_statement, values)
     db_connect.commit()
     db_connect.close()
-    return c
 
 def variable_create_columns(column_table_name, column_name, column_datatype):
     db_connect, c = db_connection()
@@ -133,7 +133,7 @@ def variable_create_columns(column_table_name, column_name, column_datatype):
     db_connect.commit()
     db_connect.close()
 
-def independent_create_form(table_name):
+def table_details_select(table_name):
     db_connect, c = db_connection()
     c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name FROM variables
                 WHERE columns_table_name = '{}';""".format(table_name))
@@ -141,3 +141,9 @@ def independent_create_form(table_name):
     db_connect.close()
     return data
 
+def independent_var_duplicate_date_input():
+    db_connect, c = db_connection()
+    c.execute("""SELECT date_input FROM independent_variables;""")
+    data = c.fetchall()
+    db_connect.close()
+    return data

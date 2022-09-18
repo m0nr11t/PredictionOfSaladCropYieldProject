@@ -1,5 +1,6 @@
 import streamlit as st
-from sql_execute import independent_create_form
+from calculate import timestamp
+from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input
 def main():
     st.title("ข้อมูลตัวแปรอิสระ (รายวัน)🌦️")
     select_page_tab, create_page_tab, update_page_tab = st.tabs(
@@ -14,22 +15,79 @@ def main():
 def create_page():
     with st.form("independent_form", clear_on_submit=True):
         table_name = "independent_variables"
-        date_input = st.date_input("วันที่")
-        columns = independent_create_form(table_name)
+        columns = table_details_select(table_name)
+        sql_columns_name = ("date_input")
+        n = 1
         for rows in columns:
+            if n == 1:
+                column_name = ("date_input")
+                globals()[column_name] = st.date_input("วันที่").strftime('%Y-%m-%d')
             if rows[2] == "double precision":
-                st.number_input(label=rows[1],min_value=0.00)
-            elif rows[2] == "smallint":
-                st.number_input(label=rows[1], min_value=0, step=1)
+                column_name = rows[0]
+                globals()[column_name] = float(st.number_input(label=rows[1],min_value=0.00, key=rows[0]))
+                st.write(rows[0])
+            elif rows[2] == "integer":
+                column_name = rows[0]
+                globals()[column_name] = int(st.number_input(label=rows[1], min_value=0, step=1, key=rows[0]))
+                st.write(rows[0])
+            n+=1
+            sql_columns_name = sql_columns_name + str(",") + rows[0]
+        sql_columns_name = sql_columns_name + str(",") + str("created_at,updated_at")
+        duplicate_date = independent_var_duplicate_date_input()
+        for columns in duplicate_date:
+            for values in columns:
+                if date_input == str(values):
+                    date_check = False
+                else:
+                    date_check = True
         if st.form_submit_button(label="เพิ่มข้อมูล"):
-            st.success("เพิ่มข้อมูลสำเร็จ!")
+            st.write(date_check)
+            if date_check == True:
+                created_at = str(timestamp())
+                updated_at = created_at
+                # db_connect, c = db_connection()
+                # sql_statement = """INSERT INTO independent_variables({}) VALUES {};""".format(sql_columns_name,
+                #                                                                               eval(sql_columns_name))
+                # c.execute(sql_statement)
+                # db_connect.commit()
+                # db_connect.close()
+                st.success("เพิ่มข้อมูลสำเร็จ!")
+            else:
+                st.error("วันที่ซ้ำ! กรุณาเลือกวันที่ใหม่ หรือไปที่เมนูแก้ไข")
+
 
 def update_page():
-
+    table_name = "independent_variables"
+    columns = table_details_select(table_name)
+    sql_columns_name = ("date_input")
+    n = 1
+    for rows in columns:
+        if n == 1:
+            column_name = ("date_input")
+            globals()[column_name] = str(st.date_input("วันที่"))
+        if rows[2] == "double precision":
+            column_name = rows[0]
+            globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=0.00, key=rows[1]))
+            st.write(rows[0])
+        elif rows[2] == "integer":
+            column_name = rows[0]
+            globals()[column_name] = int(st.number_input(label=rows[1], min_value=0, step=1, key=rows[1]))
+            st.write(rows[0])
+        n += 1
+        sql_columns_name = sql_columns_name + str(",") + rows[0]
+    sql_columns_name = sql_columns_name + str(",") + str("created_at,updated_at")
     st.markdown("""---""")
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
     with col2:
         edit_button_clicked = st.button(label="แก้ไขข้อมูล")
+        created_at = str(timestamp())
+        updated_at = created_at
+        db_connect, c = db_connection()
+        sql_statement = """INSERT INTO independent_variables({}) VALUES {};""".format(sql_columns_name,
+                                                                                      eval(sql_columns_name))
+        c.execute(sql_statement)
+        db_connect.commit()
+        db_connect.close()
     with col4:
         delete_button_clicked = st.button(label="ลบข้อมูล")
     if edit_button_clicked:

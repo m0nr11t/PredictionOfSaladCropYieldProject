@@ -14,7 +14,7 @@ def main():
             columns_table_name = ('independent_variables')
             columns_name = st.text_input(label="ชื่อตัวฟิลด์ภาษาอังกฤษ",help="1.ต้องเป็นตัวอักษรภาษาอังกฤษเท่านั้น \n 2.ห้ามมีอักขระพิเศษอื่นใด \n 3.ห้ามเป็นคำต้องห้าม SQL")
             columns_alias = st.text_input(label="ชื่อตัวฟิลด์ภาษาไทย")
-            columns_datatype = st.selectbox(label="ชนิดข้อมูล", options=("double precision","smallint"),index=1)
+            columns_datatype = st.selectbox(label="ชนิดข้อมูล", options=("double precision","integer"),index=1)
             columns_cal = st.selectbox(label="การคำนวณข้อมูลภายในฟิลด์", options=("SUM", "MAX", "MIN", "AVG", "COUNT"), index=1)
             created_at = timestamp()
             col_left,col_center,col_right = st.columns([2,1,2])
