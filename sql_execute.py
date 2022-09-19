@@ -1,7 +1,7 @@
 from postgres_con import db_local_connect
 from io import BytesIO
 from PIL import Image
-from datetime import date
+import streamlit as st
 
 def db_connection():
     "This function connected postgresql database and create cursor for SQL statements support"
@@ -33,15 +33,15 @@ def test_select_variable(sql_dependent,sql_independent):
     db_connect.close()
     return data
 
-def farm_tb_insert(vil_name, district_name, postcode, vil_no, subdistrict_name, province_name, farm_quantity,
-                   building_quantity, land_privileges, soil_analysis, water_analysis, gap_analysis):
+def farm_tb_insert(vil_name, district_name, vil_no, subdistrict_name, province_name, geo_x, geo_y, geo_z,
+                            land_privileges, soil_analysis, water_analysis, gap_analysis,created_at,updated_at):
     "This function for insert data to farm's table from farm's page"
     db_connect, c = db_connection()
-    sql_statement = """INSERT INTO farm(vil_name, district_name, postcode, vil_no, subdistrict_name, province_name, 
-                    farm_quantity, building_quantity, land_privileges, soil_analysis, water_analysis, gap_analysis)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
-    values = (vil_name, district_name, postcode, vil_no, subdistrict_name, province_name, farm_quantity,
-              building_quantity, land_privileges, soil_analysis, water_analysis, gap_analysis)
+    sql_statement = """INSERT INTO farm(vil_name, district_name, vil_no, subdistrict_name, province_name, geo_x, geo_y, geo_z,
+                            land_privileges, soil_analysis, water_analysis, gap_analysis,created_at,updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+    values = (vil_name, district_name, vil_no, subdistrict_name, province_name, geo_x, geo_y, geo_z,
+                            land_privileges, soil_analysis, water_analysis, gap_analysis,created_at,updated_at)
     c.execute(sql_statement, values)
     db_connect.commit()
     db_connect.close()
@@ -49,7 +49,7 @@ def farm_tb_insert(vil_name, district_name, postcode, vil_no, subdistrict_name, 
 def farm_tb_select():
     "This function for select data from farm's table to farmer's page"
     db_connect, c = db_connection()
-    sql_statement = """SELECT farm_id, vil_no, vil_name, subdistrict_name, district_name FROM farm;"""
+    sql_statement = """SELECT * FROM farm;"""
     c.execute(sql_statement)
     data = c.fetchall()
     db_connect.close()
@@ -147,3 +147,20 @@ def independent_var_duplicate_date_input():
     data = c.fetchall()
     db_connect.close()
     return data
+
+def independent_var_tb_select(columns_query):
+    "This function for select datas from farm's table to farmer's page"
+    db_connect, c = db_connection()
+    c.execute("""SELECT {} FROM independent_variables ORDER BY date_input;""".format(columns_query))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def independent_var_update(sql_update,date_selected):
+    "This function fot update data to independent variables's table from user selected"
+    db_connect, c = db_connection()
+    c.execute("""UPDATE independent_variables
+                         SET {}
+                         WHERE date_input = '{}';""".format(sql_update,date_selected))
+    db_connect.commit()
+    db_connect.close()

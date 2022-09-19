@@ -1,6 +1,7 @@
 import streamlit as st
 import pyautogui
-from sql_execute import farm_tb_insert
+from sql_execute import farm_tb_insert,farm_tb_select
+from calculate import timestamp
 st.set_page_config(
     page_title="ทะเบียนที่อยู่แปลง",
     page_icon="⛺",
@@ -24,15 +25,24 @@ def main():
 def create_page():
     with st.form("farm_form",clear_on_submit=True):
         st.subheader("ข้อมูลที่อยู่")
+        created_at = timestamp()
+        updated_at = created_at
         col_left, col_right = st.columns([1,1])
         with col_left:
-            vil_name = st.text_input(label="ชื่อหมู่บ้าน")
+            vil_no = st.text_input(label="เลขที่หมู่", max_chars=2)
             subdistrict_name = st.text_input(label="ชื่อตำบล")
             province_name = st.text_input(label="ชื่อจังหวัด")
         with col_right:
-            vil_no = st.text_input(label="เลขที่หมู่", max_chars=2)
+            vil_name = st.text_input(label="ชื่อหมู่บ้าน")
             district_name = st.text_input(label="ชื่ออำเภอ")
         st.subheader("ข้อมูลคุณสมบัติ")
+        col_left,col_center,col_right = st.columns([1,1,1])
+        with col_left:
+            geo_x = st.text_input(label="พิกัดแกน X")
+        with col_center:
+            geo_y = st.text_input(label="พิกัดแกน Y")
+        with col_right:
+            geo_z = st.text_input(label="พิกัดแกน Z")
         land_privileges = st.text_input(label="สิทธิประโยชน์การใช้ที่ดิน")
         soil_analysis = st.checkbox("ได้รับการตรวจวิเคราะห์ดินแล้ว", value=False)
         water_analysis = st.checkbox("ได้รับการตรวจวิเคราะห์น้ำแล้ว", value=False)
@@ -42,40 +52,37 @@ def create_page():
         with col_center:
             submit_button_clicked = st.form_submit_button(label="เพิ่มข้อมูล")
         if submit_button_clicked:
-            farm_tb_insert(vil_name, district_name, vil_no, subdistrict_name, province_name,
-                            land_privileges, soil_analysis, water_analysis, gap_analysis)
+            farm_tb_insert(vil_name, district_name, vil_no, subdistrict_name, province_name, geo_x, geo_y, geo_z,
+                            land_privileges, soil_analysis, water_analysis, gap_analysis,created_at,updated_at)
             st.success("เพิ่มข้อมูลสำเร็จ!")
 
 def update_page():
-    a = [1, "12", "ทดสอบชื่อหมู่บ้าน", "ทดสอบชื่อตำบล", "ทดสอบชื่ออำเภอ", "ทดสอบชื่อจังหวัด", "50300", 20,
-         2,"ทดสอบสิทธิประโยชน์ที่ดิน", True, True, False]
-    b = [2, "14", "ทดสอบชื่อหมู่บ้าน2", "ทดสอบชื่อตำบล2", "ทดสอบชื่ออำเภอ2", "ทดสอบชื่อจังหวัด2", "50400", 19,
-         3,"ทดสอบสิทธิประโยชน์ที่ดิน2", False, True, False]
-    # st.write(a,b)
-    update_page_options = (a, b)
-    st.subheader("รายชื่อที่อยู่แปลง")
-    farm_selected = st.selectbox(label="กรุณาเลือกที่อยู่แปลง", options=update_page_options)
-    if farm_selected:
         st.subheader("ข้อมูลที่อยู่")
+        updated_at = timestamp()
+        update_page_options = farm_tb_select()
+        farm_selected = st.selectbox("วันที่แก้ไข", options=update_page_options,
+                                     format_func=lambda update_page_options: "หมู่ที่ {} ตำบล{} อำเภอ{} จังหวัด{}".format(update_page_options[0],update_page_options[1],update_page_options[2],update_page_options[3]))
+        st.write(farm_selected)
         col_left, col_right = st.columns([1,1])
         with col_left:
-            vil_name = st.text_input(label="ชื่อหมู่บ้าน", value=farm_selected[2])
-            district_name = st.text_input(label="ชื่ออำเภอ", value=farm_selected[4])
-            postcode = st.text_input(label="รหัสไปรษณีย์", value=farm_selected[6], max_chars=5)
+            vil_no = st.text_input(label="เลขที่หมู่", max_chars=2)
+            subdistrict_name = st.text_input(label="ชื่อตำบล")
+            province_name = st.text_input(label="ชื่อจังหวัด")
         with col_right:
-            vil_no = st.text_input(label="เลขที่หมู่", value=farm_selected[1], max_chars=2)
-            subdistrict_name = st.text_input(label="ชื่อตำบล", value=farm_selected[3])
-            province_name = st.text_input(label="ชื่อจังหวัด", value=farm_selected[5])
+            vil_name = st.text_input(label="ชื่อหมู่บ้าน")
+            district_name = st.text_input(label="ชื่ออำเภอ")
         st.subheader("ข้อมูลคุณสมบัติ")
-        col_left, col_right = st.columns([2,2])
+        col_left,col_center,col_right = st.columns([1,1,1])
         with col_left:
-            farm_quantity = st.number_input(label="จำนวนพื้นที่(ไร่)", value=farm_selected[7], min_value=0, step=1)
+            geo_x = st.text_input(label="พิกัดแกน X")
+        with col_center:
+            geo_y = st.text_input(label="พิกัดแกน Y")
         with col_right:
-            building_quantity = st.number_input(label="จำนวนพื้นที่(โรงเรือน)", value=farm_selected[8], min_value=0, step=1)
-        land_privileges = st.text_input(label="สิทธิประโยชน์การใช้ที่ดิน", value=farm_selected[9])
-        soil_analysis = st.checkbox("ได้รับการตรวจวิเคราะห์ดินแล้ว", value=farm_selected[10])
-        water_analysis = st.checkbox("ได้รับการตรวจวิเคราะห์น้ำแล้ว", value=farm_selected[11])
-        gap_analysis = st.checkbox("ได้ผ่านการรับรองระบบ GAP แล้ว", value=farm_selected[12])
+            geo_z = st.text_input(label="พิกัดแกน Z")
+        land_privileges = st.text_input(label="สิทธิประโยชน์การใช้ที่ดิน")
+        soil_analysis = st.checkbox("ได้รับการตรวจวิเคราะห์ดินแล้ว", value=False)
+        water_analysis = st.checkbox("ได้รับการตรวจวิเคราะห์น้ำแล้ว", value=False)
+        gap_analysis = st.checkbox("ได้ผ่านการรับรองระบบ GAP แล้ว", value=False)
         st.markdown("""---""")
         col_left, col2, col3, col_right, col5 = st.columns([1, 1, 1, 1, 1])
         with col_right:
