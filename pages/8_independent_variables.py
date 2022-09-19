@@ -56,18 +56,18 @@ def update_page():
     for columns_name in columns:
         columns_query = columns_query + str(",") + columns_name[0]
     update_page_options = independent_var_tb_select(columns_query)
-    sql_update = ("")
     updated_at = str(timestamp())
+    sql_update = ("")
     n = 1
     for rows in columns:
         if n == 1:
             date_selected = st.selectbox("วันที่แก้ไข",options=update_page_options,format_func=lambda update_page_options: "{}".format(update_page_options[0]))
         if rows[2] == "double precision":
             column_name = rows[0]
-            globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=0.00, key=rows[1],value=date_selected[n]))
+            globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=float(0), format=("%f"), key=(str("edit_")+rows[0]),value=date_selected[n]))
         elif rows[2] == "integer":
             column_name = rows[0]
-            globals()[column_name] = int(st.number_input(label=rows[1], min_value=0, step=1, key=rows[1],value=date_selected[n]))
+            globals()[column_name] = int(st.number_input(label=rows[1], min_value=int(0), format=("%d"), step=1, key=(str("edit_")+rows[0]),value=date_selected[n]))
         n += 1
         sql_update = sql_update + rows[0] + str(" = '") + str(eval(rows[0])) + str("', ")
     sql_update = sql_update + str("updated_at = '") + str(updated_at) + str("'")
@@ -78,7 +78,6 @@ def update_page():
     with col4:
         delete_button_clicked = st.button(label="ลบข้อมูล")
     if edit_button_clicked:
-        st.write(sql_update)
         independent_var_update(sql_update,date_selected[0])
         st.success("แก้ไขข้อมูลสำเร็จ!")
     elif delete_button_clicked:
