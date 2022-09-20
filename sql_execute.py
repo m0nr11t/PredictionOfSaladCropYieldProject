@@ -174,6 +174,59 @@ def plans_tb_delete(plan_id):
     db_connect.commit()
     db_connect.close()
 
+def crop_number(plan_id):
+    db_connect, c = db_connection()
+    c.execute("""SELECT COUNT(crop_id) FROM crops INNER JOIN plans ON crops.plan_id = plans.plan_id
+                    WHERE crops.plan_id = {};""".format(plan_id))
+    data = c.fetchone()
+    db_connect.close()
+    return data
+
+def crops_tb_insert(cropstart_date, cropmove_date, cropfinish_date, created_at, updated_at, fk_value):
+    "This function for insert data to crops's table from crop's page"
+    db_connect, c = db_connection()
+    sql_statement = """INSERT INTO crops(cropstart_date, cropmove_date, cropfinish_date, created_at, updated_at, plan_id)
+                                 VALUES (%s, %s, %s, %s, %s, %s);"""
+    values = (cropstart_date, cropmove_date, cropfinish_date, created_at, updated_at, fk_value)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
+def crops_tb_plans_select():
+    db_connect, c = db_connection()
+    c.execute("""SELECT plans.plan_year,plants.plant_name,plans.plan_id FROM crops INNER JOIN plans ON crops.plan_id = plans.plan_id
+    	                INNER JOIN plants ON plans.plant_id = plants.plant_id
+    	                GROUP BY plans.plan_id, plants.plant_id;""")
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crops_tb_select(plan_id):
+    db_connect, c = db_connection()
+    c.execute("""SELECT crops.*,ROW_NUMBER() OVER(ORDER BY crops.crop_id) AS row_no FROM crops INNER JOIN plans ON crops.plan_id = plans.plan_id
+	                INNER JOIN plants ON plans.plant_id = plants.plant_id 
+	                WHERE crops.plan_id = %s;""",([plan_id]))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crops_tb_update(crop_id, cropstart_date, cropmove_date ,cropfinish_date, updated_at):
+    db_connect, c = db_connection()
+    sql_statement = """UPDATE crops
+                             SET cropstart_date = %s, cropmove_date = %s, cropfinish_date = %s, updated_at = %s
+                             WHERE crop_id = %s;"""
+    values = (cropstart_date, cropmove_date ,cropfinish_date, updated_at, crop_id)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
+def crops_tb_delete(crop_id):
+    "This function fot delete data to crops's table from user selected"
+    db_connect, c = db_connection()
+    c.execute("DELETE FROM crops WHERE crop_id = %s;", [crop_id])
+    db_connect.commit()
+    db_connect.close()
+
 def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name):
     "This function for insert data to variables's table from config's page"
     db_connect, c = db_connection()
