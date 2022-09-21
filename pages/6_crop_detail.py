@@ -1,5 +1,9 @@
 import streamlit as st
 import pyautogui
+import time
+from calculate import timestamp
+from sql_execute import crops_options_select,farmers_tb_select,crop_details_tb_insert,crop_details_tb_select,\
+    crop_details_tb_update,crop_details_tb_delete,crop_details_duplicate
 
 def main():
     st.title("รายละเอียดแผนการเก็บเกี่ยว🔪")
@@ -12,40 +16,59 @@ def main():
         update_page()
 
 def create_page():
-    with st.form("crop_detail",clear_on_submit=True):
-        crop_id = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย",options=("รอดึงข้อมูล","รอดึงข้อมูล"))
-        farmer_id = st.selectbox(label="รหัสเกษตรกร",options=("รอดึงข้อมูล","รอดึงข้อมูล"))
-        plant_weight_before_trim = st.number_input(label="น้ำหนักผลผลิตก่อนตัดแต่ง",min_value=0.00)
-        plant_weight_after_trim = st.number_input(label="น้ำหนักผลผลิตหลังตัดแต่ง",min_value=0.00)
-        plant_quantity = st.number_input(label="จำนวนกล้า",min_value=0,step=1)
-        col1, col2 = st.columns([2, 2])
-        with col1:
-            farm_rai = st.number_input(label="จำนวนพื้นที่(ไร่)", min_value=0, step=1)
-            farm_ngan = st.number_input(label="จำนวนพื้นที่(งาน)", min_value=0, step=1)
-        with col2:
-            farm_building = st.number_input(label="จำนวนพื้นที่(โรงเรือน)", min_value=0, step=1)
-            farm_plang = st.number_input(label="จำนวนพื้นที่(แปลง)", min_value=0, step=1)
-        plant_number = st.number_input(label="จำนวนต้น",min_value=0,step=1)
-        col1, col2 = st.columns([2, 2])
-        with col1:
-            animal_place = st.number_input(label="จำนวนแห่ง", min_value=0, step=1)
-        with col2:
-            animal_pond = st.number_input(label="จำนวนบ่อ", min_value=0, step=1)
-        animal_number = st.number_input(label="จำนวนตัว", min_value=0, step=1)
-        if st.form_submit_button(label="เพิ่มข้อมูล"):
+    crop_options = crops_options_select()
+    crop_selected = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย", options=crop_options, format_func=lambda crop_options: "แผน{} ({}) ครอปที่ {}".format(crop_options[1],crop_options[2],crop_options[3]))
+    farmer_options = farmers_tb_select()
+    farmer_selected = st.selectbox(label="รหัสเกษตรกร", options=farmer_options, format_func=lambda farmer_options: "{}: {} {} ({})".format(farmer_options[0],farmer_options[2],farmer_options[3],farmer_options[4]))
+    col1, col2 = st.columns([2, 2])
+    with col1:
+        farm_rai = st.number_input(label="จำนวนพื้นที่(ไร่)", min_value=float(0), format=("%f"))
+        farm_building = st.number_input(label="จำนวนพื้นที่(โรงเรือน)", min_value=int(0), step=1, format=("%d"))
+    with col2:
+        farm_ngan = st.number_input(label="จำนวนพื้นที่(งาน)", min_value=float(0), format=("%f"))
+        farm_plang = st.number_input(label="จำนวนพื้นที่(แปลง)", min_value=float(0), format=("%f"))
+    seedling_quantity = st.number_input(label="จำนวนต้นกล้า", min_value=int(0), format=("%d"))
+    crop_details_check = crop_details_duplicate()
+    duplicate_crop_details_check = True
+    for rows in crop_details_check:
+        condition_duplicate = (str(rows[0]) +  str(rows[1]) == str(crop_selected[0]) + str(farmer_selected[0]))
+        if condition_duplicate == True:
+            duplicate_crop_details_check = False
+    if st.button(label="เพิ่มข้อมูล"):
+        if duplicate_crop_details_check == True:
+            created_at = timestamp()
+            updated_at = created_at
+            crop_details_tb_insert(crop_selected[0], farmer_selected[0], farm_rai, farm_building, farm_ngan, farm_plang, seedling_quantity, created_at, updated_at)
             st.success("เพิ่มข้อมูลสำเร็จ!")
+            time.sleep(1.5)
+            st.experimental_rerun()
+        else:
+            st.error("ข้อมูลคุณ {} {} ({}) ในแผน{} ({}) ครอปที่ {} ถูกเพิ่มไว้แล้ว ไปที่เมนูแก้ไข".format(farmer_selected[2],farmer_selected[3],farmer_selected[4],crop_selected[1],crop_selected[2],crop_selected[3]))
 
 def update_page():
-    a = [1, 1, 20, 20, 10, 15]
-    b = [1, 1, 20, 20, 10, 15]
-    update_options = (a, b)
-    crop_id = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย", options=(update_options))
-    farmer_id = st.selectbox(label="รหัสเกษตรกร", options=(update_options))
-    if farmer_id:
-        plant_weight_before_trim = st.number_input(label="น้ำหนักผลผลิตก่อนตัดแต่ง",min_value=0.00)
-        plant_weight_after_trim = st.number_input(label="น้ำหนักผลผลิตหลังตัดแต่ง",min_value=0.00)
-        plant_quantity = st.number_input(label="จำนวนกล้า", min_value=0, step=1)
-        plant_area = st.number_input(label="พื้นที่เพาะปลูก", min_value=0, step=1)
+    crop_options = crops_options_select()
+    crop_selected = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย", options=crop_options, format_func=lambda crop_options: "แผน{} ({}) ครอปที่ {}".format(crop_options[1],crop_options[2],crop_options[3]), key=("edit_plan_optins"))
+    update_options = crop_details_tb_select(crop_selected[0])
+    farmer_selected = st.selectbox(label="รหัสเกษตรกร", options=update_options, format_func=lambda update_options: "{}: {} {} ({})".format(update_options[1],update_options[2],update_options[3],update_options[4]), key=("edit_farmer_options"))
+    col1, col2 = st.columns([2, 2])
+    if farmer_selected is None:
+        with col1:
+            farm_rai = st.number_input(label="จำนวนพื้นที่(ไร่)", min_value=float(0), key=("update_farm_rai"), disabled=True)
+            farm_building = st.number_input(label="จำนวนพื้นที่(โรงเรือน)", min_value=int(0), step=1,
+                                            key=("update_farm_building"), disabled=True)
+        with col2:
+            farm_ngan = st.number_input(label="จำนวนพื้นที่(งาน)", min_value=float(0), key=("update_farm_ngan"), disabled=True)
+            farm_plang = st.number_input(label="จำนวนพื้นที่(แปลง)", min_value=float(0), key=("update_farm_plang"), disabled=True)
+        seedling_quantity = st.number_input(label="จำนวนต้นกล้า", min_value=int(0), key=("update_seedling_quantity"), format=("%d"), disabled=True)
+    else:
+        with col1:
+            farm_rai = st.number_input(label="จำนวนพื้นที่(ไร่)", min_value=float(0), format=("%f"), key=("update_farm_rai"), value=float(farmer_selected[5]))
+            farm_building = st.number_input(label="จำนวนพื้นที่(โรงเรือน)", min_value=int(0), step=1, format=("%d"),
+                                            key=("update_farm_building"), value=int(farmer_selected[7]))
+        with col2:
+            farm_ngan = st.number_input(label="จำนวนพื้นที่(งาน)", min_value=float(0), format=("%f"), key=("update_farm_ngan"), value=float(farmer_selected[6]))
+            farm_plang = st.number_input(label="จำนวนพื้นที่(แปลง)", min_value=float(0), format=("%f"), key=("update_farm_plang"), value=float(farmer_selected[8]))
+        seedling_quantity = st.number_input(label="จำนวนต้นกล้า", min_value=int(0), format=("%d"), key=("update_seedling_quantity"), value=int(farmer_selected[9]))
         st.markdown("""---""")
         col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
         with col2:
@@ -53,11 +76,18 @@ def update_page():
         with col4:
             delete_button_clicked = st.button(label="ลบข้อมูล")
         if edit_button_clicked:
+            updated_at = timestamp()
             st.success("แก้ไขข้อมูลสำเร็จ!")
+            crop_details_tb_update(farmer_selected[0], farmer_selected[1], farm_rai, farm_building, farm_ngan, farm_plang, seedling_quantity,
+                                   updated_at)
+            time.sleep(1.5)
+            st.experimental_rerun()
         elif delete_button_clicked:
+            crop_details_tb_delete(farmer_selected[0], farmer_selected[1])
             st.error("ลบข้อมูลสำเร็จ!")
+            time.sleep(1.5)
             pyautogui.hotkey("ctrl", "F5")
-
+            st.experimental_rerun()
 def select_page():
     a = [1, 1, 20, 20, 10, 15]
     b = [1, 1, 20, 20, 10, 15]

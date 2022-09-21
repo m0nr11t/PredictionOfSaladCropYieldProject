@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from calculate import timestamp
 from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input,independent_var_tb_select,independent_var_update
 def main():
@@ -46,6 +47,8 @@ def create_page():
                 db_connect.commit()
                 db_connect.close()
                 st.success("เพิ่มข้อมูลสำเร็จ!")
+                time.sleep(1.5)
+                st.experimental_rerun()
             else:
                 st.error("วันที่ซ้ำ! กรุณาเลือกวันที่ใหม่ หรือไปที่เมนูแก้ไข")
 

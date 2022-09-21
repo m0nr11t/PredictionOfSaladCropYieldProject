@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 def main():
-    st.title("ทะเบียนเกษตรกร🧑‍🌾")
+    st.subheader("ทะเบียนเกษตรกร🧑‍🌾")
     select_page_tab, create_page_tab, update_page_tab = st.tabs(["📖 เรียกดูข้อมูล", "➕ เพิ่มข้อมูล", "📝 แก้ไขข้อมูล"])
     with select_page_tab:
         select_page();
@@ -79,6 +79,8 @@ def create_page():
                              image_file , farm_vil_no, farm_vil_name, farm_subdistrict_name, farm_district_name, farm_province_name, farm_geo_x, farm_geo_y, farm_geo_z,
                            farm_land_privileges, farm_soil_analysis, farm_water_analysis, farm_gap_analysis, created_at, updated_at)
             st.success("เพิ่มข้อมูลสำเร็จ!")
+            time.sleep(1.5)
+            st.experimental_rerun()
 
 def update_page():
     update_page_options = farmers_tb_select()

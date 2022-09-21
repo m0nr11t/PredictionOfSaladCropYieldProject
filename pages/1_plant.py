@@ -34,6 +34,8 @@ def create_page():
             updated_at = created_at
             plants_tb_insert(plant_name, image_file, created_at, updated_at)
             st.success("เพิ่มข้อมูล พืช{} สำเร็จ!".format(plant_name))
+            time.sleep(1.5)
+            st.experimental_rerun()
 
 
 def update_page():

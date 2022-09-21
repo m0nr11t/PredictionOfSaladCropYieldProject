@@ -36,12 +36,10 @@ def create_page():
 def update_page():
     st.subheader("รหัสแผนการเพาะปลูกโดยย่อย")
     plans_options = crops_tb_plans_select()
-    st.write(plans_options)
     st.subheader("เลือกข้อมูลแผน")
     plan_selected = st.selectbox(label="กรุณาเลือกแผน", options=plans_options, format_func=lambda plans_options: "แผน{} ({})".format(plans_options[1],plans_options[0]), key=("updated_plan_id"))
     update_page_options = crops_tb_select(plan_selected[2])
     st.subheader("เลือกข้อมูลครอป")
-    st.write(update_page_options)
     crop_selected = st.selectbox(label="กรุณาเลือกครอป", options=update_page_options, format_func=lambda update_page_options: "ครอปที่ {}".format(update_page_options[7]), key=("updated_crop_id"))
     cropstart_date = st.date_input(label="วันที่เริ่มต้นแผนการปลูก",min_value=date(1900,1,1), value=crop_selected[0], key=("update_cropstart_date"))
     if cropstart_date == crop_selected[0]:

@@ -33,6 +33,8 @@ def create_page():
                  updated_at = created_at
                  plans_tb_insert(plan_year, created_at, updated_at, plant_selected[0])
                  st.success("เพิ่มข้อมูลสำเร็จ! แผนพืช{} ปี {}".format(plant_selected[1],plan_year))
+                 time.sleep(1.5)
+                 st.experimental_rerun()
              else:
                 st.error("แผนพืช{} ปี {} ถูกเพิ่มไว้แล้ว กรุณาสร้างแผนอื่น".format(plant_selected[1],plan_year))
 

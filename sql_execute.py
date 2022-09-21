@@ -227,6 +227,92 @@ def crops_tb_delete(crop_id):
     db_connect.commit()
     db_connect.close()
 
+def crops_options_select():
+    db_connect, c = db_connection()
+    c.execute("""SELECT crops.crop_id, plant_name, plan_year, ROW_NUMBER() OVER (PARTITION BY plant_name, plan_year ORDER By plant_name, plan_year) AS num_row 
+	                FROM crops INNER JOIN plans ON crops.plan_id = plans.plan_id
+		                INNER JOIN plants ON plans.plant_id = plants.plant_id ;""")
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crop_details_tb_select(crop_id):
+    db_connect, c = db_connection()
+    c.execute("""SELECT crop_details.crop_id, crop_details.farmer_id, firstname, lastname, farmer_gov_id, rai_area, ngan_area, building_area, plang_area, seedling_quantity FROM crop_details INNER JOIN farmers ON crop_details.farmer_id = farmers.farmer_id
+		INNER JOIN crops ON crop_details.crop_id = crops.crop_id
+		WHERE crop_details.crop_id = {};""".format(crop_id))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crop_details_duplicate():
+    db_connect, c = db_connection()
+    c.execute("""SELECT crop_id, farmer_id  FROM crop_details""")
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crop_details_tb_insert(crop_id, farmer_id, farm_rai, farm_building, farm_ngan, farm_plang, seedling_quantity, created_at, updated_at):
+    "This function for insert data to crop_details's table from crop details's page"
+    db_connect, c = db_connection()
+    sql_statement = """INSERT INTO crop_details(crop_id, farmer_id, rai_area, building_area, ngan_area, plang_area, seedling_quantity, created_at, updated_at)
+                                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+    values = (crop_id, farmer_id, farm_rai, farm_building, farm_ngan, farm_plang, seedling_quantity, created_at, updated_at)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
+def crop_details_tb_update(crop_id, farmer_id, farm_rai, farm_building, farm_ngan, farm_plang, seedling_quantity, updated_at):
+    db_connect, c = db_connection()
+    sql_statement = """UPDATE crop_details
+                             SET rai_area = %s, building_area = %s, ngan_area = %s, plang_area = %s, seedling_quantity = %s, updated_at = %s
+                             WHERE crop_id = %s AND farmer_id = %s;"""
+    values = (farm_rai, farm_building, farm_ngan, farm_plang, seedling_quantity, updated_at, crop_id, farmer_id)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
+def crop_details_tb_delete(crop_id, farmer_id):
+    db_connect, c = db_connection()
+    c.execute("DELETE FROM crop_details WHERE crop_id = %s AND farmer_id = %s;", (crop_id,farmer_id))
+    db_connect.commit()
+    db_connect.close()
+
+def crop_detail_products_duplicate():
+    db_connect, c = db_connection()
+    c.execute("""SELECT crop_id, farmer_id FROM crop_detail_products""")
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crop_detail_products_tb_insert(plant_weight_before_trim, plant_weight_after_trim, image_file, created_at, updated_at, crop_id, farmer_id):
+    db_connect, c = db_connection()
+    sql_statement = """INSERT INTO crop_detail_products(plant_weight_before_trim, plant_weight_after_trim, img, created_at, updated_at, crop_id, farmer_id)
+                                     VALUES (%s, %s, %s, %s, %s, %s, %s);"""
+    values = (plant_weight_before_trim, plant_weight_after_trim, image_file, created_at, updated_at, crop_id, farmer_id)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
+def crop_detail_products_tb_select(crop_id):
+    db_connect, c = db_connection()
+    c.execute("""SELECT crop_detail_product_id, crop_id, crop_detail_products.farmer_id, firstname, lastname, farmer_gov_id, plant_weight_before_trim, plant_weight_after_trim FROM crop_detail_products 
+                    INNER JOIN farmers ON crop_detail_products.farmer_id = farmers.farmer_id
+                    WHERE crop_id = %s""",[crop_id])
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def crop_detail_products_tb_update(crop_detail_product_id, plant_weight_before_trim, plant_weight_after_trim, image_file, updated_at):
+    db_connect, c = db_connection()
+    sql_statement = """UPDATE crop_detail_products
+                             SET plant_weight_before_trim = %s, plant_weight_after_trim = %s, img = %s, updated_at = %s
+                             WHERE crop_detail_product_id = %s;"""
+    values = (plant_weight_before_trim, plant_weight_after_trim, image_file, updated_at, crop_detail_product_id)
+    c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
 def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name):
     "This function for insert data to variables's table from config's page"
     db_connect, c = db_connection()
@@ -234,6 +320,12 @@ def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at
                          VALUES (%s, %s, %s, %s, %s, %s);"""
     values = (columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name)
     c.execute(sql_statement, values)
+    db_connect.commit()
+    db_connect.close()
+
+def crop_detail_products_tb_delete(crop_detail_product_id):
+    db_connect, c = db_connection()
+    c.execute("DELETE FROM crop_detail_products WHERE crop_detail_product_id = %s;", [crop_detail_product_id])
     db_connect.commit()
     db_connect.close()
 
