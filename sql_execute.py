@@ -285,34 +285,6 @@ def crop_detail_products_duplicate():
     db_connect.close()
     return data
 
-def crop_detail_products_tb_insert(plant_weight_before_trim, plant_weight_after_trim, image_file, created_at, updated_at, crop_id, farmer_id):
-    db_connect, c = db_connection()
-    sql_statement = """INSERT INTO crop_detail_products(plant_weight_before_trim, plant_weight_after_trim, img, created_at, updated_at, crop_id, farmer_id)
-                                     VALUES (%s, %s, %s, %s, %s, %s, %s);"""
-    values = (plant_weight_before_trim, plant_weight_after_trim, image_file, created_at, updated_at, crop_id, farmer_id)
-    c.execute(sql_statement, values)
-    db_connect.commit()
-    db_connect.close()
-
-def crop_detail_products_tb_select(crop_id):
-    db_connect, c = db_connection()
-    c.execute("""SELECT crop_detail_product_id, crop_id, crop_detail_products.farmer_id, firstname, lastname, farmer_gov_id, plant_weight_before_trim, plant_weight_after_trim FROM crop_detail_products 
-                    INNER JOIN farmers ON crop_detail_products.farmer_id = farmers.farmer_id
-                    WHERE crop_id = %s""",[crop_id])
-    data = c.fetchall()
-    db_connect.close()
-    return data
-
-def crop_detail_products_tb_update(crop_detail_product_id, plant_weight_before_trim, plant_weight_after_trim, image_file, updated_at):
-    db_connect, c = db_connection()
-    sql_statement = """UPDATE crop_detail_products
-                             SET plant_weight_before_trim = %s, plant_weight_after_trim = %s, img = %s, updated_at = %s
-                             WHERE crop_detail_product_id = %s;"""
-    values = (plant_weight_before_trim, plant_weight_after_trim, image_file, updated_at, crop_detail_product_id)
-    c.execute(sql_statement, values)
-    db_connect.commit()
-    db_connect.close()
-
 def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name):
     "This function for insert data to variables's table from config's page"
     db_connect, c = db_connection()
@@ -320,12 +292,6 @@ def variable_tb_insert(columns_name, columns_alias, columns_datatype, created_at
                          VALUES (%s, %s, %s, %s, %s, %s);"""
     values = (columns_name, columns_alias, columns_datatype, created_at, columns_cal, columns_table_name)
     c.execute(sql_statement, values)
-    db_connect.commit()
-    db_connect.close()
-
-def crop_detail_products_tb_delete(crop_detail_product_id):
-    db_connect, c = db_connection()
-    c.execute("DELETE FROM crop_detail_products WHERE crop_detail_product_id = %s;", [crop_detail_product_id])
     db_connect.commit()
     db_connect.close()
 
@@ -350,18 +316,33 @@ def independent_var_duplicate_date_input():
     db_connect.close()
     return data
 
-def independent_var_tb_select(columns_query):
+def variables_query(columns_query,from_con, join_con, on_con, where_con,order_by_con):
     db_connect, c = db_connection()
-    c.execute("""SELECT {} FROM independent_variables ORDER BY date_input;""".format(columns_query))
+    c.execute("""SELECT {} {} {} {} {} {};""".format(columns_query,from_con, join_con, on_con, where_con,order_by_con))
     data = c.fetchall()
     db_connect.close()
     return data
 
-def independent_var_update(sql_update,date_selected):
+def variable_update(table_name, set_update, where_update):
     "This function fot update data to independent variables's table from user selected"
     db_connect, c = db_connection()
-    c.execute("""UPDATE independent_variables
-                         SET {}
-                         WHERE date_input = '{}';""".format(sql_update,date_selected))
+    sql_statement = ("""UPDATE {} SET {} {};""".format(table_name, set_update, where_update))
+    c.execute(sql_statement)
+    db_connect.commit()
+    db_connect.close()
+
+def variable_img_update(image_file, pk_value):
+    db_connect, c = db_connection()
+    sql_statement = ("""UPDATE crop_detail_products SET img = %s WHERE crop_detail_product_id = %s;""")
+    values = (image_file, pk_value)
+    # st.write(sql_statement,values)
+    c.execute(sql_statement,values)
+    db_connect.commit()
+    db_connect.close()
+
+
+def variable_delete(table_name, where_delete):
+    db_connect, c = db_connection()
+    c.execute("DELETE FROM {} {};".format(table_name,where_delete))
     db_connect.commit()
     db_connect.close()

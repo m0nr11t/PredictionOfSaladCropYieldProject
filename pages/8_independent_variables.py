@@ -1,7 +1,8 @@
 import streamlit as st
 import time
+import pyautogui
 from calculate import timestamp
-from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input,independent_var_tb_select,independent_var_update
+from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input,variables_query,variable_update,variable_delete
 def main():
     st.title("ข้อมูลตัวแปรอิสระ (รายวัน)🌦️")
     select_page_tab, create_page_tab, update_page_tab = st.tabs(
@@ -17,20 +18,23 @@ def create_page():
     with st.form("independent_form", clear_on_submit=True):
         table_name = "independent_variables"
         columns = table_details_select(table_name)
-        sql_columns_name = ("date_input")
-        n = 1
+        sql_columns_name = ("date_input,")
+        n = 0
         for rows in columns:
-            if n == 1:
+            if n == 0:
                 column_name = ("date_input")
                 globals()[column_name] = st.date_input("วันที่").strftime('%Y-%m-%d')
             if rows[2] == "double precision":
                 column_name = rows[0]
-                globals()[column_name] = float(st.number_input(label=rows[1],min_value=0.00, key=rows[0]))
+                globals()[column_name] = float(st.number_input(label=rows[1],min_value=float(0.000), key=rows[0], format=("%f")))
             elif rows[2] == "integer":
                 column_name = rows[0]
-                globals()[column_name] = int(st.number_input(label=rows[1], min_value=0, step=1, key=rows[0]))
+                globals()[column_name] = int(st.number_input(label=rows[1], min_value=0, step=1, key=rows[0], format=("%d")))
+            if n == 0:
+                sql_columns_name = sql_columns_name + rows[0]
+            else:
+                sql_columns_name = sql_columns_name + str(",") + rows[0]
             n+=1
-            sql_columns_name = sql_columns_name + str(",") + rows[0]
         sql_columns_name = sql_columns_name + str(",created_at,updated_at")
         date_check = independent_var_duplicate_date_input()
         duplicate_date_check = True
@@ -54,17 +58,22 @@ def create_page():
 
 def update_page():
     table_name = "independent_variables"
+    from_con = "FROM independent_variables"
+    join_con = ("")
+    on_con = ("")
+    where_con = ("")
+    order_by_con = "ORDER BY date_input"
     columns = table_details_select(table_name)
-    columns_query = ("date_input")
+    columns_query = ("independent_id,date_input")
     for columns_name in columns:
         columns_query = columns_query + str(",") + columns_name[0]
-    update_page_options = independent_var_tb_select(columns_query)
-    updated_at = str(timestamp())
+    update_page_options = variables_query(columns_query,from_con, join_con, on_con, where_con,order_by_con)
     sql_update = ("")
-    n = 1
+    updated_at = str(timestamp())
+    n = 2
     for rows in columns:
-        if n == 1:
-            date_selected = st.selectbox("วันที่แก้ไข",options=update_page_options,format_func=lambda update_page_options: "{}".format(update_page_options[0]))
+        if n == 2:
+            date_selected = st.selectbox("วันที่แก้ไข",options=update_page_options,format_func=lambda update_page_options: "{}".format(update_page_options[1]))
         if rows[2] == "double precision":
             column_name = rows[0]
             globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=float(0), format=("%f"), key=(str("edit_")+rows[0]),value=date_selected[n]))
@@ -74,6 +83,7 @@ def update_page():
         n += 1
         sql_update = sql_update + rows[0] + str(" = '") + str(eval(rows[0])) + str("', ")
     sql_update = sql_update + str("updated_at = '") + str(updated_at) + str("'")
+    where_update = ("WHERE date_input = '{}'".format(date_selected[1]))
     st.markdown("""---""")
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
     with col2:
@@ -81,11 +91,17 @@ def update_page():
     with col4:
         delete_button_clicked = st.button(label="ลบข้อมูล")
     if edit_button_clicked:
-        independent_var_update(sql_update,date_selected[0])
+        variable_update(table_name,sql_update,where_update)
         st.success("แก้ไขข้อมูลสำเร็จ!")
+        time.sleep(1.5)
+        st.experimental_rerun()
     elif delete_button_clicked:
+        where_delete = ("WHERE independent_id = {}".format(date_selected[0]))
+        variable_delete(table_name, where_delete)
         st.error("ลบข้อมูลสำเร็จ!")
-        # pyautogui.hotkey("ctrl", "F5")
+        time.sleep(1.5)
+        pyautogui.hotkey("ctrl", "F5")
+        st.experimental_rerun()
 
 def select_page():
     a = [1, 1, '2022-08-23', '2022-08-23', '2022-08-23', 5]
