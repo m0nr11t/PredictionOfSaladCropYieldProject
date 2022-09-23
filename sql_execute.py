@@ -303,7 +303,7 @@ def variable_create_columns(column_table_name, column_name, column_datatype):
 
 def table_details_select(table_name):
     db_connect, c = db_connection()
-    c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name FROM variables
+    c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name, columns_lasted_order, columns_cal FROM variables
                 WHERE columns_table_name = '{}';""".format(table_name))
     data = c.fetchall()
     db_connect.close()
@@ -346,3 +346,56 @@ def variable_delete(table_name, where_delete):
     c.execute("DELETE FROM {} {};".format(table_name,where_delete))
     db_connect.commit()
     db_connect.close()
+
+def sql_independent_variable_details_by_crop_argument():
+    table_name = ("independent_variables")
+    col_in_independent_variables = table_details_select(table_name)
+    sql_col_independent_variables_query = ("c.crop_id,cropstart_date,cropfinish_date,")
+    for rows in col_in_independent_variables:
+        sql_col_independent_variables_query = sql_col_independent_variables_query + str(rows[5]) + str("(") + str(rows[0]) + str("),")
+    sql_col_independent_variables_query = ''.join(sql_col_independent_variables_query.rsplit(',', 1))
+    return sql_col_independent_variables_query
+
+def sql_crop_details_by_crop_argument():
+    table_name = ("crop_details")
+    col_in_crop_details_variables = table_details_select(table_name)
+    sql_col_crop_details_variables_query = ("c.crop_id,COUNT(cd.farmer_id),")
+    for rows in col_in_crop_details_variables:
+        sql_col_crop_details_variables_query = sql_col_crop_details_variables_query + str(rows[5]) + str("(") + str(rows[0]) + str("),")
+    return sql_col_crop_details_variables_query
+
+def sql_crop_detail_products_by_crop_argument():
+    table_name = ("crop_detail_products")
+    col_in_crop_detail_products_variables = table_details_select(table_name)
+    sql_col_crop_detail_products_variables_query = ("")
+    for rows in col_in_crop_detail_products_variables:
+        sql_col_crop_detail_products_variables_query = sql_col_crop_detail_products_variables_query + str(rows[5]) + str("(") + str(rows[0]) + str("),")
+    sql_col_crop_detail_products_variables_query = ''.join(sql_col_crop_detail_products_variables_query.rsplit(',', 1))
+    return sql_col_crop_detail_products_variables_query
+
+def independent_variable_details_by_crop_select():
+    sql_col_independent_variables_query = sql_independent_variable_details_by_crop_argument()
+    sql_col_crop_details_variables_query = sql_crop_details_by_crop_argument()
+    sql_col_crop_detail_products_variables_query = sql_crop_detail_products_by_crop_argument()
+    db_connect, c = db_connection()
+    c.execute("""SELECT * 
+                    FROM 
+                        (SELECT {} FROM independent_variables 
+                            RIGHT JOIN crops c 
+                            ON date_input BETWEEN cropstart_date AND cropfinish_date
+                            GROUP BY c.crop_id ) AS t1
+                    INNER JOIN
+                        (SELECT {}{} FROM crop_details cd LEFT JOIN
+                        crop_detail_products cdp
+                        ON cd.crop_id = cdp.crop_id 
+                        RIGHT JOIN crops c 
+                        ON c.crop_id = cdp.crop_id
+                        LEFT JOIN farmers f
+                        ON f.farmer_id = cdp.farmer_id
+                        GROUP BY c.crop_id) AS t2
+                    ON (t1.crop_id = t2.crop_id)
+                    ORDER BY t2.crop_id""".format(sql_col_independent_variables_query,sql_col_crop_details_variables_query,sql_col_crop_detail_products_variables_query))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
