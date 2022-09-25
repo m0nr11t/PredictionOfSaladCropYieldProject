@@ -1,3 +1,4 @@
+import pandas as pd
 from postgres_con import db_local_connect
 from io import BytesIO
 from PIL import Image
@@ -303,7 +304,14 @@ def variable_create_columns(column_table_name, column_name, column_datatype):
 
 def table_details_select(table_name):
     db_connect, c = db_connection()
-    c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name, columns_lasted_order, columns_cal FROM variables
+    if (table_name == "only_dependent"):
+        c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name, columns_lasted_order, columns_cal FROM variables
+        WHERE columns_name LIKE 'plant_weight_before_trim';""")
+    elif (table_name == "only_independent"):
+        c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name, columns_lasted_order, columns_cal FROM variables
+                        WHERE columns_name NOT LIKE 'plant_weight_before_trim';""".format(table_name))
+    else:
+        c.execute("""SELECT columns_name, columns_alias, columns_datatype, columns_table_name, columns_lasted_order, columns_cal FROM variables
                 WHERE columns_table_name = '{}';""".format(table_name))
     data = c.fetchall()
     db_connect.close()
@@ -340,7 +348,6 @@ def variable_img_update(image_file, pk_value):
     db_connect.commit()
     db_connect.close()
 
-
 def variable_delete(table_name, where_delete):
     db_connect, c = db_connection()
     c.execute("DELETE FROM {} {};".format(table_name,where_delete))
@@ -350,51 +357,83 @@ def variable_delete(table_name, where_delete):
 def sql_independent_variable_details_by_crop_argument():
     table_name = ("independent_variables")
     col_in_independent_variables = table_details_select(table_name)
-    sql_col_independent_variables_query = ("c.crop_id,cropstart_date,cropfinish_date,")
+    sql_col_independent_variables_query = ("")
     for rows in col_in_independent_variables:
         sql_col_independent_variables_query = sql_col_independent_variables_query + str(rows[5]) + str("(") + str(rows[0]) + str("),")
     sql_col_independent_variables_query = ''.join(sql_col_independent_variables_query.rsplit(',', 1))
     return sql_col_independent_variables_query
 
+def columns_name_independent_weather():
+    table_name = ("independent_variables")
+    col_in_independent_variables = table_details_select(table_name)
+    columns_name = []
+    for rows in col_in_independent_variables:
+        columns_name.append(rows[1])
+    return columns_name
+
 def sql_crop_details_by_crop_argument():
     table_name = ("crop_details")
     col_in_crop_details_variables = table_details_select(table_name)
-    sql_col_crop_details_variables_query = ("c.crop_id,COUNT(cd.farmer_id),")
+    sql_col_crop_details_variables_query = ("COUNT(cd.farmer_id),")
     for rows in col_in_crop_details_variables:
         sql_col_crop_details_variables_query = sql_col_crop_details_variables_query + str(rows[5]) + str("(") + str(rows[0]) + str("),")
+    sql_col_crop_details_variables_query = ''.join(sql_col_crop_details_variables_query.rsplit(',', 1))
     return sql_col_crop_details_variables_query
 
-def sql_crop_detail_products_by_crop_argument():
-    table_name = ("crop_detail_products")
-    col_in_crop_detail_products_variables = table_details_select(table_name)
-    sql_col_crop_detail_products_variables_query = ("")
-    for rows in col_in_crop_detail_products_variables:
-        sql_col_crop_detail_products_variables_query = sql_col_crop_detail_products_variables_query + str(rows[5]) + str("(") + str(rows[0]) + str("),")
-    sql_col_crop_detail_products_variables_query = ''.join(sql_col_crop_detail_products_variables_query.rsplit(',', 1))
-    return sql_col_crop_detail_products_variables_query
+def columns_name_independent_crop():
+    table_name = ("crop_details")
+    col_in_crop_details_variables = table_details_select(table_name)
+    columns_name = ['จำนวนเกษตรกร']
+    for rows in col_in_crop_details_variables:
+        columns_name.append(rows[1])
+    return columns_name
 
-def independent_variable_details_by_crop_select():
+def independent_variable_details_by_crop_select(plant):
     sql_col_independent_variables_query = sql_independent_variable_details_by_crop_argument()
     sql_col_crop_details_variables_query = sql_crop_details_by_crop_argument()
-    sql_col_crop_detail_products_variables_query = sql_crop_detail_products_by_crop_argument()
     db_connect, c = db_connection()
-    c.execute("""SELECT * 
-                    FROM 
-                        (SELECT {} FROM independent_variables 
-                            RIGHT JOIN crops c 
-                            ON date_input BETWEEN cropstart_date AND cropfinish_date
-                            GROUP BY c.crop_id ) AS t1
-                    INNER JOIN
-                        (SELECT {}{} FROM crop_details cd LEFT JOIN
-                        crop_detail_products cdp
-                        ON cd.crop_id = cdp.crop_id 
-                        RIGHT JOIN crops c 
-                        ON c.crop_id = cdp.crop_id
-                        LEFT JOIN farmers f
-                        ON f.farmer_id = cdp.farmer_id
-                        GROUP BY c.crop_id) AS t2
-                    ON (t1.crop_id = t2.crop_id)
-                    ORDER BY t2.crop_id""".format(sql_col_independent_variables_query,sql_col_crop_details_variables_query,sql_col_crop_detail_products_variables_query))
+    c.execute("""SELECT plants.plant_id,plants.plant_name,summary_data_by_plan.* FROM
+                    (SELECT PLANS.plant_id,PLANS.plan_year,summary_data_by_crop.* FROM
+                        (SELECT crops.plan_id,crops.crop_id,cropstart_date,cropfinish_date,independent_weather.*, independent_crop.*, dependent_crop.* FROM
+                            (SELECT  c.crop_id,{} FROM independent_variables 
+                                                    RIGHT JOIN crops c 
+                                                        ON date_input BETWEEN cropstart_date AND cropfinish_date
+                                                    GROUP BY c.crop_id
+                                                    ORDER BY c.crop_id) AS independent_weather
+                        INNER JOIN
+                            (SELECT c.crop_id,{} FROM farmers f
+                                            INNER JOIN 
+                                                crop_details cd 
+                                            ON cd.farmer_id = f.farmer_id
+                                            RIGHT JOIN 
+                                                crops c
+                                            ON cd.crop_id = c.crop_id
+                                            GROUP BY c.crop_id
+                                            ORDER BY c.crop_id) AS independent_crop
+                        ON independent_weather.crop_id = independent_crop.crop_id
+                        INNER JOIN		
+                            (SELECT c.crop_id,SUM(plant_weight_before_trim) FROM crop_details cd 
+                                            FULL OUTER JOIN 
+                                                crop_detail_products cdp 
+                                            ON cd.farmer_id = cdp.farmer_id AND cd.crop_id = cdp.crop_id
+                                            RIGHT JOIN 
+                                                crops c
+                                            ON cd.crop_id = c.crop_id
+                                            GROUP BY c.crop_id
+                                            ORDER BY c.crop_id) AS dependent_crop
+                        ON independent_crop.crop_id = dependent_crop.crop_id
+                        RIGHT JOIN crops 
+                        ON crops.crop_id = independent_weather.crop_id 
+                        AND crops.crop_id = independent_crop.crop_id 
+                        AND crops.crop_id = dependent_crop.crop_id 
+                        ) AS summary_data_by_crop
+                    RIGHT JOIN 
+                    PLANS
+                    ON PLANS.plan_id = summary_data_by_crop.plan_id) AS summary_data_by_plan
+                RIGHT JOIN 
+                plants 
+                ON summary_data_by_plan.plant_id = plants.plant_id
+                WHERE plants.plant_id = '{}';""".format(sql_col_independent_variables_query,sql_col_crop_details_variables_query,plant))
     data = c.fetchall()
     db_connect.close()
     return data

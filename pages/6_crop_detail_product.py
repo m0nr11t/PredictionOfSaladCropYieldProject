@@ -70,7 +70,6 @@ def create_page():
                                      VALUES (%s, %s, %s, %s, {});""".format(sql_columns_name,
                                                                                               str(eval(sql_columns_name)).replace("(","").replace(")",""))
                 values = (plant_weight_after_trim, image_file, crop_details_selected[0], crop_details_selected[1])
-                st.write(sql_statement)
                 c.execute(sql_statement,values)
                 db_connect.commit()
                 db_connect.close()
