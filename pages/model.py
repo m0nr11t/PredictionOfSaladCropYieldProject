@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import seaborn as sns
+# import and install
+from matplotlib import font_manager
+location = ['C:/Users/monmo/Downloads/Niramit']
+
+print(font_file)
+font_manager.fontManager.addfont(font_file)
 from sql_execute import plants_tb_select,table_details_select,independent_variable_details_by_crop_select,columns_name_independent_weather,columns_name_independent_crop
 from calculate import columns_name_for_dataframe
 st.set_page_config(
@@ -49,5 +56,13 @@ def main():
             st.plotly_chart(fig)
         else:
             pass
+        st.text("การวิเคราะห์ความสัมพันธ์เชิงเส้นจากแผนภาพ")
+        # sns.set_theme(font="Arial")
+        # pairplot_fig = sns.pairplot(df,
+        #                  kind='reg',
+        #                  plot_kws={'scatter_kws': {'alpha': 0.4},
+        #                            'line_kws': {'color': '#F652A0'}},
+        #                  diag_kws={'color': '#36EEE0', 'alpha': 0.2});
+        # st.pyplot(pairplot_fig)
 main()
 
