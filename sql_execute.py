@@ -388,7 +388,7 @@ def columns_name_independent_crop():
         columns_name.append(rows[1])
     return columns_name
 
-def independent_variable_details_by_crop_select(plant):
+def data_query_for_modeling(plant):
     sql_col_independent_variables_query = sql_independent_variable_details_by_crop_argument()
     sql_col_crop_details_variables_query = sql_crop_details_by_crop_argument()
     db_connect, c = db_connection()
@@ -396,8 +396,8 @@ def independent_variable_details_by_crop_select(plant):
                     (SELECT PLANS.plant_id,PLANS.plan_year,summary_data_by_crop.* FROM
                         (SELECT crops.plan_id,crops.crop_id,cropstart_date,cropfinish_date,independent_weather.*, independent_crop.*, dependent_crop.* FROM
                             (SELECT  c.crop_id,{} FROM independent_variables 
-                                                    RIGHT JOIN crops c 
-                                                        ON date_input BETWEEN cropstart_date AND cropfinish_date
+                                                    INNER JOIN crops c 
+                                                        ON date_input BETWEEN cropstart_date AND (cropfinish_date - INTERVAL '7' DAY)
                                                     GROUP BY c.crop_id
                                                     ORDER BY c.crop_id) AS independent_weather
                         INNER JOIN
@@ -405,7 +405,7 @@ def independent_variable_details_by_crop_select(plant):
                                             INNER JOIN 
                                                 crop_details cd 
                                             ON cd.farmer_id = f.farmer_id
-                                            RIGHT JOIN 
+                                            INNER JOIN 
                                                 crops c
                                             ON cd.crop_id = c.crop_id
                                             GROUP BY c.crop_id
@@ -413,24 +413,24 @@ def independent_variable_details_by_crop_select(plant):
                         ON independent_weather.crop_id = independent_crop.crop_id
                         INNER JOIN		
                             (SELECT c.crop_id,SUM(plant_weight_before_trim) FROM crop_details cd 
-                                            FULL OUTER JOIN 
+                                            INNER JOIN 
                                                 crop_detail_products cdp 
                                             ON cd.farmer_id = cdp.farmer_id AND cd.crop_id = cdp.crop_id
-                                            RIGHT JOIN 
+                                            INNER JOIN 
                                                 crops c
                                             ON cd.crop_id = c.crop_id
                                             GROUP BY c.crop_id
                                             ORDER BY c.crop_id) AS dependent_crop
                         ON independent_crop.crop_id = dependent_crop.crop_id
-                        RIGHT JOIN crops 
+                        LEFT JOIN crops 
                         ON crops.crop_id = independent_weather.crop_id 
                         AND crops.crop_id = independent_crop.crop_id 
                         AND crops.crop_id = dependent_crop.crop_id 
                         ) AS summary_data_by_crop
-                    RIGHT JOIN 
+                    LEFT JOIN 
                     PLANS
                     ON PLANS.plan_id = summary_data_by_crop.plan_id) AS summary_data_by_plan
-                RIGHT JOIN 
+                LEFT JOIN 
                 plants 
                 ON summary_data_by_plan.plant_id = plants.plant_id
                 WHERE plants.plant_id = '{}';""".format(sql_col_independent_variables_query,sql_col_crop_details_variables_query,plant))

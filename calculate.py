@@ -1,7 +1,10 @@
 import datetime
 from io import BytesIO
 from PIL import Image
-from sql_execute import columns_name_independent_weather,columns_name_independent_crop
+import pandas as pd
+import statsmodels.api as sm
+import streamlit as st
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 def prename_transform(farmer_selected):
     ### Transform Str to Int for Radiobutton Index ###
@@ -38,4 +41,3 @@ def columns_name_for_dataframe(columns_name_independent_weather,columns_name_ind
     columns_name.append('crop_details_crop_id')
     columns_name.append('ปริมาณผลผลิตก่อนตัดแต่ง')
     return columns_name
-
