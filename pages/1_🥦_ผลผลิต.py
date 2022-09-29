@@ -49,7 +49,6 @@ def create_page():
                 sql_columns_name = sql_columns_name + str(",") + rows[0]
             n+=1
         sql_columns_name = sql_columns_name + str(",created_at,updated_at")
-        st.write(sql_columns_name)
         image_file = st.file_uploader(label="แนบไฟล์รูป:", type=["jpg", "png", "jpeg"], accept_multiple_files=False)
         if image_file is not None:
             image_file = load_image(image_file)

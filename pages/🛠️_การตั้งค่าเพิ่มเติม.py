@@ -3,11 +3,12 @@ from calculate import timestamp
 from sql_execute import variable_tb_insert, variable_create_columns
 
 st.set_page_config(
-    page_title="Home",
-    page_icon="👋",
+    page_title="การตั้งค่าเพิ่มเติม",
+    page_icon="🛠️",
+    layout="wide"
 )
 
-st.title("Configuration Page")
+st.subheader("การตั้งค่าเพิ่มเติม 🛠️")
 def main():
     expander_independent_variables_field_add()
     expander_crop_details_field_add()
