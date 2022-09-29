@@ -8,6 +8,5 @@ sklearn~=0.0
 scikit-learn~=1.1.2
 statsmodels~=0.13.2
 scipy~=1.9.1
-setuptools~=63.4.1
 pillow~=9.2.0
 psycopg2~=2.9.3
