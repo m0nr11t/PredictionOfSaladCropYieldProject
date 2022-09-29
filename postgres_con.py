@@ -3,7 +3,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 def db_local_connect():
     "This function for connect postgresql database"
-    host = "cloud"
+    host = ""
     if host == "cloud":
         project_db = psycopg2.connect(
             host="db.qkgjtcncguuailctmjwa.supabase.co",

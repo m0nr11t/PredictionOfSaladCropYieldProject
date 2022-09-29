@@ -2,9 +2,8 @@ import datetime
 from io import BytesIO
 from PIL import Image
 import pandas as pd
-import statsmodels.api as sm
 import streamlit as st
-from statsmodels.stats.outliers_influence import variance_inflation_factor
+from sql_execute import table_details_select
 
 def prename_transform(farmer_selected):
     ### Transform Str to Int for Radiobutton Index ###
@@ -31,6 +30,30 @@ def columns_name_for_dataframe(columns_name_independent_weather,columns_name_ind
     columns_name = ['plants_plant_id', 'plant_name', 'plans_plant_id', 'plan_year', 'crops_plan_id', 'crops_crop_id',
                     'cropstart_date', 'cropfinish_date', 'crops_crop_id_daily']
     # columns_name_2
+    columns_name_independent_weather = columns_name_independent_weather
+    for rows in columns_name_independent_weather:
+        columns_name.append(rows)
+    columns_name.append('crops_crop_id_crop')
+    columns_name_independent_crop = columns_name_independent_crop
+    for rows in columns_name_independent_crop:
+        columns_name.append(rows)
+    columns_name.append('crop_details_crop_id')
+    columns_name.append('ปริมาณผลผลิตก่อนตัดแต่ง')
+    return columns_name
+
+def transform_colname_th_en(model_var):
+    df_model_var = pd.DataFrame(model_var)
+    tb_details = table_details_select("only_independent")
+    df_tb_name = pd.DataFrame(tb_details)
+    # st.write(df_tb_name)
+    # st.write(df_model_var)
+    col_name_en = pd.merge(left=df_tb_name,right=df_model_var,left_on=[1],right_on=[0],how="inner")
+    st.write(col_name_en)
+    col_name_en = col_name_en[['0_x',1,2,3,4]]
+    return col_name_en
+
+def columns_name_for_predicted(columns_name_independent_weather,columns_name_independent_crop):
+    columns_name = ['crops_plan_id', 'crops_crop_id','crop_id']
     columns_name_independent_weather = columns_name_independent_weather
     for rows in columns_name_independent_weather:
         columns_name.append(rows)

@@ -488,3 +488,93 @@ def models_tb_select(model_id):
     data = c.fetchone()
     db_connect.close()
     return data
+
+def crop_can_predict_options(plant_id):
+    db_connect, c = db_connection()
+    c.execute("""SELECT plants.plant_id,plant_name,plan_year,de_summary.* FROM 
+                    (SELECT c.crop_id,ROW_NUMBER() OVER(ORDER BY c.crop_id),SUM(plant_weight_before_trim) FROM crop_details cd 
+                                                FULL OUTER JOIN 
+                                                    crop_detail_products cdp 
+                                                ON cd.farmer_id = cdp.farmer_id AND cd.crop_id = cdp.crop_id
+                                                RIGHT JOIN 
+                                                    crops c
+                                                ON cd.crop_id = c.crop_id
+                                                GROUP BY c.crop_id
+                                                HAVING SUM(cdp.plant_weight_before_trim) IS NULL) AS de_summary 
+                            INNER JOIN crops  
+                            ON de_summary.crop_id = crops.crop_id
+                            INNER JOIN PLANS
+                            ON crops.plan_id = PLANS.plan_id
+                            INNER JOIN plants
+                            ON PLANS.plant_id = plants.plant_id 
+                            WHERE plants.plant_id = {};""".format(plant_id))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def predict_arguments(crop_id,model_var_en):
+    if model_var_en == []:
+        data = None
+    else:
+        sql_col_independent_variables_query = sql_independent_variable_details_by_crop_argument()
+        sql_col_crop_details_variables_query = sql_crop_details_by_crop_argument()
+        var = model_var_en
+        independent_var = ("")
+        crop_details_var = ("")
+        crop_detail_products_var = ("")
+        for rows in var:
+            if rows[3] == "independent_variables":
+                independent_var = str(",") + rows[0] + independent_var
+            if rows[3] == "crop_details":
+                crop_details_var = str(",") + rows[0] + crop_details_var
+            if rows[3] == "crop_detail_products":
+                crop_detail_products_var = str(",") + rows[0] + crop_detail_products_var
+        if independent_var == (""):
+            independent_var = ("")
+        else:
+            independent_var = str("WHERE (") + independent_var.replace(",","",1) + str(") IS NOT NULL")
+        if crop_details_var == (""):
+            crop_details_var = ("")
+        else:
+            crop_details_var = str("WHERE (") + crop_details_var.replace(",","",1) + str(") IS NOT NULL")
+        if crop_detail_products_var == (""):
+            crop_detail_products_var = ("")
+        else:
+            crop_detail_products_var = str("WHERE (") + crop_detail_products_var.replace(",", "", 1) + str(") IS NOT NULL")
+    db_connect, c = db_connection()
+    c.execute("""SELECT crops.plan_id,crops.crop_id,independent_weather.*, independent_crop.*, dependent_crop.* FROM
+                                (SELECT  c.crop_id,{} FROM independent_variables 
+                                                        RIGHT JOIN crops c 
+                                                            ON date_input BETWEEN cropstart_date AND (cropfinish_date - INTERVAL '7' DAY) {}
+                                                        GROUP BY c.crop_id
+                                                        ORDER BY c.crop_id) AS independent_weather
+                            INNER JOIN
+                                (SELECT c.crop_id,{} FROM farmers f
+                                                INNER JOIN 
+                                                    crop_details cd 
+                                                ON cd.farmer_id = f.farmer_id
+                                                RIGHT JOIN 
+                                                    crops c
+                                                ON cd.crop_id = c.crop_id {}
+                                                GROUP BY c.crop_id
+                                                ORDER BY c.crop_id) AS independent_crop
+                            ON independent_weather.crop_id = independent_crop.crop_id
+                            INNER JOIN		
+                                (SELECT c.crop_id,SUM(plant_weight_before_trim) AS ปริมาณผลผลิตก่อนตัดแต่ง FROM crop_details cd 
+                                                FULL OUTER JOIN 
+                                                    crop_detail_products cdp 
+                                                ON cd.farmer_id = cdp.farmer_id AND cd.crop_id = cdp.crop_id
+                                                RIGHT JOIN 
+                                                    crops c
+                                                ON cd.crop_id = c.crop_id {}
+                                                GROUP BY c.crop_id
+                                                ORDER BY c.crop_id) AS dependent_crop
+                            ON independent_crop.crop_id = dependent_crop.crop_id
+                            INNER JOIN crops 
+                            ON crops.crop_id = independent_weather.crop_id 
+                            AND crops.crop_id = independent_crop.crop_id 
+                            AND crops.crop_id = dependent_crop.crop_id 
+                            WHERE crops.crop_id = {};""".format(sql_col_independent_variables_query,independent_var,sql_col_crop_details_variables_query,crop_details_var,crop_detail_products_var,crop_id))
+    data = c.fetchall()
+    db_connect.close()
+    return data

@@ -51,6 +51,8 @@ def main():
                                               format_func=lambda independent_options: "{}".format(
                                                   independent_options[1]), default=independent_options)
         dt = data_query_for_modeling(plant_selected[0],independent_selected)
+        st.write(type(dt),type(columns_name))
+        st.write(dt,columns_name)
         df_raw = pd.DataFrame(dt, columns=columns_name)
         inde_columns_selected = []
         for rows in independent_selected:
