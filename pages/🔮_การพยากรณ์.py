@@ -63,15 +63,15 @@ def main():
                 n += 1
             st.markdown("**รูปสมการ:**")
             st.text("""ปริมาณผลผลิต = {:.3f} {}""".format(model_intercept, coefficent_x_var))
-            if st.checkbox(":",value=False):
+            if st.checkbox("ดูข้อมูล:",value=False):
                 st.write(model_arguments)
             st.markdown("**อธิบายได้ว่า**")
             n=0
             for coef_var in model_coef:
                 if coef_var[0] >= 0:
-                    st.text("{}. เมื่อ{}เพิ่มขึ้น {} หน่วย ส่งผลให้ปริมาณผลผลิตเพิ่มขึ้น".format(n+1,model_var[n],str(round(coef_var[0],2)).replace("+","")))
+                    st.text("{}. เมื่อ{}เพิ่มขึ้น 1 หน่วย ส่งผลให้ปริมาณผลผลิตเพิ่มขึ้น {} กิโลกรัม".format(n+1,model_var[n],str(round(coef_var[0],2)).replace("+","")))
                 else:
-                    st.text("{}. เมื่อ{}ลดลง {} หน่วย ส่งผลให้ปริมาณผลผลิตเพิ่มขึ้น".format(n+1,model_var[n],str(round(coef_var[0],2)).replace("-","")))
+                    st.text("{}. เมื่อ{}ลดลง 1 หน่วย ส่งผลให้ปริมาณผลผลิตเพิ่มขึ้น {} กิโลกรัม".format(n+1,model_var[n],str(round(coef_var[0],2)).replace("-","")))
                 n += 1
             col1,col2 = st.columns([1,1])
             with col1:

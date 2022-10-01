@@ -48,7 +48,7 @@ def transform_colname_th_en(model_var):
     # st.write(df_tb_name)
     # st.write(df_model_var)
     col_name_en = pd.merge(left=df_tb_name,right=df_model_var,left_on=[1],right_on=[0],how="inner")
-    st.write(col_name_en)
+    # st.write(col_name_en)
     col_name_en = col_name_en[['0_x',1,2,3,4]]
     return col_name_en
 
