@@ -51,8 +51,6 @@ def main():
                                               format_func=lambda independent_options: "{}".format(
                                                   independent_options[1]), default=independent_options)
         dt = data_query_for_modeling(plant_selected[0],independent_selected)
-        st.write(type(dt),type(columns_name))
-        st.write(dt,columns_name)
         df_raw = pd.DataFrame(dt, columns=columns_name)
         inde_columns_selected = []
         for rows in independent_selected:
@@ -87,7 +85,7 @@ def main():
         st.text("รูปสมการ:")
         st.text("""Y = {:.3f} {}""".format(model_intercept,coefficent_x_var))
 
-        with st.expander("การวิเคราะห์ข้อมูลตัวแปรเบื้องต้น (Data Explore):"):
+        with st.expander("การวิเคราะห์ข้อมูลตัวแปรเบื้องต้น (Data Explore) ..."):
             dt_status = st.checkbox("1. ชุดข้อมูล (Data Set):",value=False)
             if dt_status is True:
                 st.dataframe(df, width=2500)
@@ -188,7 +186,7 @@ def main():
             else:
                 pass
 
-        with st.expander("การประเมินแบบจำลอง (Model Evaluation)"):
+        with st.expander("การประเมินแบบจำลอง (Model Evaluation) ..."):
             Y_predicted = regression_predict_model.predict(X_test)
             st.write("1. การประเมินค่าความคลาดเคลื่อนเฉลี่ย (The Standard Error of The Regression):")
             MAE = sk.metrics.mean_absolute_error(Y_test, Y_predicted)
@@ -217,10 +215,10 @@ def main():
             linear_multi_Reg = model.fit()
             st.write("3. การประเมินนัยสำคัญทางสถิติที่มีต่อแบบจำลองนี้")
             st.table(linear_multi_Reg.conf_int())
-        with st.expander("การบันทึกแบบจำลอง (Model Save):"):
+        with st.expander("การบันทึกแบบจำลอง (Model Save) ..."):
             created_at = timestamp()
             updated_at = created_at
-            model_name = st.text_input("ระบุชื่อแบบจำลอง",value=("{}({})".format(plant_selected[1],created_at.strftime('%Y-%m-%d'))))
+            model_name = st.text_input("ระบุชื่อแบบจำลอง",value=("โมเดล{}({})".format(plant_selected[1],created_at.strftime('%Y-%m-%d'))))
             model = pickle.dumps(regression_predict_model)
             col1,col2,col3 = st.columns([3,1,3])
             with col2:

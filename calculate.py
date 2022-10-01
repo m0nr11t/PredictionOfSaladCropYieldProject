@@ -64,3 +64,35 @@ def columns_name_for_predicted(columns_name_independent_weather,columns_name_ind
     columns_name.append('crop_details_crop_id')
     columns_name.append('ปริมาณผลผลิตก่อนตัดแต่ง')
     return columns_name
+
+
+def solve(equation):
+    """Solve Linear Equations using eval() function in Python
+    Special Thanks to Greeksforgreeks
+    Cr. https://www.geeksforgeeks.org/solve-linear-equations-using-eval-in-python/
+    """
+    # replacing all the x terms with j
+    # the imaginary part
+    s1 = equation.replace('x', 'j')
+
+    # shifting the equal sign to start
+    # an opening bracket
+    s2 = s1.replace('=', '-(')
+
+    # adding the closing bracket to form
+    # a complete expression
+    s = s2 + ')'
+
+    # mapping the literal j to the complex j
+    z = eval(s, {'j': 1j})
+    real, imag = z.real, -z.imag
+
+    # if the imaginary part is true return the
+    # answer
+    if imag:
+        return "%f" % (real / imag)
+    else:
+        if real:
+            return "No solution"
+        else:
+            return "Infinite solutions"

@@ -492,7 +492,7 @@ def models_tb_select(model_id):
 def crop_can_predict_options(plant_id):
     db_connect, c = db_connection()
     c.execute("""SELECT plants.plant_id,plant_name,plan_year,de_summary.* FROM 
-                    (SELECT c.crop_id,ROW_NUMBER() OVER(ORDER BY c.crop_id),SUM(plant_weight_before_trim) FROM crop_details cd 
+                    (SELECT c.crop_id,ROW_NUMBER() OVER(ORDER BY c.crop_id),SUM(plant_weight_before_trim),c.cropstart_date,c.cropmove_date,c.cropfinish_date FROM crop_details cd 
                                                 FULL OUTER JOIN 
                                                     crop_detail_products cdp 
                                                 ON cd.farmer_id = cdp.farmer_id AND cd.crop_id = cdp.crop_id
@@ -574,7 +574,8 @@ def predict_arguments(crop_id,model_var_en):
                             ON crops.crop_id = independent_weather.crop_id 
                             AND crops.crop_id = independent_crop.crop_id 
                             AND crops.crop_id = dependent_crop.crop_id 
-                            WHERE crops.crop_id = {};""".format(sql_col_independent_variables_query,independent_var,sql_col_crop_details_variables_query,crop_details_var,crop_detail_products_var,crop_id))
+                            WHERE crops.crop_id = {}
+                            LIMIT 1;""".format(sql_col_independent_variables_query,independent_var,sql_col_crop_details_variables_query,crop_details_var,crop_detail_products_var,crop_id))
     data = c.fetchall()
     db_connect.close()
     return data
