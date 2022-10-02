@@ -133,18 +133,21 @@ def update_page():
             sql_update = ("plant_weight_after_trim = '") + str(plant_weight_after_trim) + str("', ")
             n = 7
             for rows in columns:
-                if rows[2] == "double precision":
-                    column_name = rows[0]
-                    globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=float(0), format=("%f"),
-                                                                   key=(str("edit_") + rows[0]),
-                                                                   value=update_page_options_selected[n]))
-                elif rows[2] == "integer":
-                    column_name = rows[0]
-                    globals()[column_name] = int(st.number_input(label=rows[1], min_value=int(0), format=("%d"), step=1,
-                                                                 key=(str("edit_") + rows[0]),
-                                                                 value=update_page_options_selected[n]))
+                if update_page_options_selected[n] is None:
+                    pass
+                else:
+                    if rows[2] == "double precision":
+                        column_name = rows[0]
+                        globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=float(0), format=("%f"),
+                                                                       key=(str("edit_") + rows[0]),
+                                                                       value=update_page_options_selected[n]))
+                    elif rows[2] == "integer":
+                        column_name = rows[0]
+                        globals()[column_name] = int(st.number_input(label=rows[1], min_value=int(0), format=("%d"), step=1,
+                                                                     key=(str("edit_") + rows[0]),
+                                                                     value=update_page_options_selected[n]))
+                    sql_update = sql_update + rows[0] + str(" = '") + str(eval(rows[0])) + str("', ")
                 n += 1
-                sql_update = sql_update + rows[0] + str(" = '") + str(eval(rows[0])) + str("', ")
             where_update = ("WHERE crop_detail_product_id = {}".format(update_page_options_selected[0]))
             image_file_after = st.file_uploader(label="แก้ไขรูป", type=["jpg", "png", "jpeg"], accept_multiple_files=False)
             if image_file_after is not None:
