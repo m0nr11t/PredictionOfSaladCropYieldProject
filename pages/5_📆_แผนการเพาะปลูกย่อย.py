@@ -17,11 +17,10 @@ def main():
 
 def create_page():
     plan_options = plans_tb_select()
-    st.subheader("เลือกข้อมูลแผน")
     plan_selected = st.selectbox(label="กรุณาเลือกแผน", options=plan_options, format_func=lambda plan_options: "แผน{} ({})".format(plan_options[5],plan_options[0]))
     crop_no = crop_number(plan_selected[3])
     crop_no = crop_no[0] + 1
-    st.subheader("ครอปที่ {}".format(crop_no))
+    st.markdown("##### ครอปที่ {}:".format(crop_no))
     cropstart_date = st.date_input(label="วันที่เริ่มต้นแผนการปลูก",min_value=date(1900,1,1))
     cropmove_date = st.date_input(label="วันที่ย้ายแผนการปลูก", value=(cropstart_date+timedelta(days=1)), min_value=(cropstart_date+timedelta(days=1)))
     cropfinish_date = st.date_input(label="วันที่สิ้นสุดแผนการปลูก", value=(cropmove_date+timedelta(days=1)), min_value=(cropmove_date+timedelta(days=1)))
@@ -34,12 +33,9 @@ def create_page():
         st.experimental_rerun()
 
 def update_page():
-    st.subheader("รหัสแผนการเพาะปลูกโดยย่อย")
     plans_options = crops_tb_plans_select()
-    st.subheader("เลือกข้อมูลแผน")
     plan_selected = st.selectbox(label="กรุณาเลือกแผน", options=plans_options, format_func=lambda plans_options: "แผน{} ({})".format(plans_options[1],plans_options[0]), key=("updated_plan_id"))
     update_page_options = crops_tb_select(plan_selected[2])
-    st.subheader("เลือกข้อมูลครอป")
     crop_selected = st.selectbox(label="กรุณาเลือกครอป", options=update_page_options, format_func=lambda update_page_options: "ครอปที่ {}".format(update_page_options[7]), key=("updated_crop_id"))
     cropstart_date = st.date_input(label="วันที่เริ่มต้นแผนการปลูก",min_value=date(1900,1,1), value=crop_selected[0], key=("update_cropstart_date"))
     if cropstart_date == crop_selected[0]:

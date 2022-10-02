@@ -151,6 +151,18 @@ def plans_tb_select():
     db_connect.close()
     return data
 
+def plans_tb_select_all(plant_id):
+    db_connect, c = db_connection()
+    if plant_id == 0:
+        sql_statement = """SELECT plant_name,plan_year FROM plans INNER JOIN plants ON plans.plant_id = plants.plant_id ORDER BY plan_id;""".format(
+            plant_id)
+    else:
+        sql_statement = """SELECT plant_name,plan_year FROM plans INNER JOIN plants ON plans.plant_id = plants.plant_id WHERE plans.plant_id = {} ORDER BY plan_id;""".format(plant_id)
+    c.execute(sql_statement)
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
 def plans_tb_update(plan_year, updated_at, plan_id):
     db_connect, c = db_connection()
     sql_statement = """UPDATE plans

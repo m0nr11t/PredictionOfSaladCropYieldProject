@@ -21,7 +21,7 @@ def main():
 
 def create_page():
     with st.form("farmers_form",clear_on_submit=True):
-        st.subheader("ข้อมูลส่วนตัว")
+        st.markdown("##### ข้อมูลส่วนตัว")
         prename = st.radio(label="คำนำหน้า",options=("นาย","นาง","นางสาว"),horizontal=True, key="prename")
         col1, col2 = st.columns([2,2])
         with col1:
@@ -31,7 +31,7 @@ def create_page():
         with col2:
             lastname = st.text_input(label="นามสกุล", key="lastname")
             gov_id = st.text_input(label="รหัสประชาชน",max_chars=13, key="gov_id")
-        st.subheader("ข้อมูลที่อยู่")
+        st.markdown("##### ข้อมูลที่อยู่")
         col1, col2 = st.columns([2, 2])
         with col1:
             house_no = st.text_input(label="เลขที่บ้าน", max_chars=6, key="house_no")
@@ -42,7 +42,7 @@ def create_page():
             vil_no = st.text_input(label="เลขที่หมู่", max_chars=2, key="vil_no")
             subdistrict_name = st.text_input(label="ชื่อตำบล", key="subdistrict_name")
             province_name = st.text_input(label="ชื่อจังหวัด", key="province")
-        st.subheader("ข้อมูลที่อยู่แปลง")
+        st.markdown("##### ข้อมูลที่อยู่แปลง")
         col_left, col_right = st.columns([1, 1])
         with col_left:
             farm_vil_no = st.text_input(label="เลขที่หมู่", max_chars=2, key="farm_vil_no")
@@ -51,7 +51,7 @@ def create_page():
         with col_right:
             farm_vil_name = st.text_input(label="ชื่อหมู่บ้าน", key="farm_vil_name")
             farm_district_name = st.text_input(label="ชื่ออำเภอ", key="farm_district_name")
-        st.subheader("ข้อมูลคุณสมบัติแปลง")
+        st.markdown("##### ข้อมูลคุณสมบัติแปลง")
         col_left, col_center, col_right = st.columns([1, 1, 1])
         with col_left:
             farm_geo_x = st.text_input(label="พิกัดแกน X", key="farm_geo_x")
@@ -94,6 +94,7 @@ def update_page():
         st.image(img, width=250)
     prename_index = prename_transform(farmer_selected[1])
     if farmer_selected:
+        st.markdown("##### ข้อมูลส่วนตัว")
         prename = st.radio(label="คำนำหน้า",index=prename_index, options=("นาย", "นาง", "นางสาว"), horizontal=True, key="edit_prename")
         col1, col2 = st.columns([2, 2])
         with col1:
@@ -103,7 +104,7 @@ def update_page():
         with col2:
             lastname = st.text_input(label="นามสกุล", key="edit_lastname",value=farmer_selected[3])
             gov_id = st.text_input(label="รหัสประชาชน", max_chars=13, key="edit_gov_id",value=farmer_selected[5])
-        st.subheader("ข้อมูลที่อยู่")
+        st.markdown("##### ข้อมูลที่อยู่")
         col1, col2 = st.columns([2, 2])
         with col1:
             house_no = st.text_input(label="เลขที่บ้าน", max_chars=6, key="edit_house_no",value=farmer_selected[7])
@@ -114,7 +115,7 @@ def update_page():
             vil_no = st.text_input(label="เลขที่หมู่", max_chars=2, key="edit_vil_no",value=farmer_selected[8])
             subdistrict_name = st.text_input(label="ชื่อตำบล", key="edit_subdistrict_name",value=farmer_selected[10])
             province_name = st.text_input(label="ชื่อจังหวัด", key="edit_province",value=farmer_selected[12])
-        st.subheader("ข้อมูลที่อยู่แปลง")
+        st.markdown("##### ข้อมูลที่อยู่แปลง")
         col_left, col_right = st.columns([1, 1])
         with col_left:
             farm_vil_no = st.text_input(label="เลขที่หมู่", max_chars=2, key="edit_farm_vil_no",value=farmer_selected[14])
@@ -123,7 +124,7 @@ def update_page():
         with col_right:
             farm_vil_name = st.text_input(label="ชื่อหมู่บ้าน", key="edit_farm_vil_name",value=farmer_selected[15])
             farm_district_name = st.text_input(label="ชื่ออำเภอ", key="edit_farm_district_name",value=farmer_selected[17])
-        st.subheader("ข้อมูลคุณสมบัติแปลง")
+        st.markdown("##### ข้อมูลคุณสมบัติแปลง")
         col_left, col_center, col_right = st.columns([1, 1, 1])
         with col_left:
             farm_geo_x = st.text_input(label="พิกัดแกน X", key="edit_farm_geo_x",value=farmer_selected[19])

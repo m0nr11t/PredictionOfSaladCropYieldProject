@@ -1,12 +1,15 @@
+import pandas as pd
 import streamlit as st
 import pyautogui
 import time
 from calculate import timestamp, load_image
 from sql_execute import plants_tb_insert, plants_tb_select, tb_select_pil, plants_tb_update, plants_tb_delete,\
-                        plants_tb_select,plans_tb_insert,plan_duplicate,plans_tb_select,plans_tb_update,plans_tb_delete
+                        plants_tb_select,plans_tb_insert,plan_duplicate,plans_tb_select,plans_tb_update,plans_tb_delete,\
+                        plans_tb_select_all
 st.set_page_config(
     page_title="พืชและแผน",
     page_icon="🌱",
+    layout="wide"
 )
 
 def main():
@@ -52,7 +55,6 @@ def create_plants_page():
 
 def update_plants_page():
     update_plants_page_options = plants_tb_select()
-    st.subheader("รายชื่อพืช:")
     plant_selected = st.selectbox(label="กรุณาเลือกพืช:", options=update_plants_page_options,format_func=lambda update_plants_page_options: "{:03d}: {}".format(update_plants_page_options[0],update_plants_page_options[1]))
     plant_id = plant_selected[0]
     plant_name = plant_selected[1]
@@ -62,11 +64,9 @@ def update_plants_page():
     image_before = row
     col_left,col_right = st.columns([1, 1])
     with col_left:
-        st.subheader("รูปภาพ")
         st.image(img,width=300)
 
     with col_right:
-        st.subheader("ข้อมูลพืช")
         if plant_selected:
             plant_name = st.text_input(label="แก้ไขชื่อพืช",value=plant_selected[1])
             image_file_after = st.file_uploader(label="แก้ไขรูป", type=["jpg", "png", "jpeg"], accept_multiple_files=False)
@@ -95,33 +95,18 @@ def update_plants_page():
 
 
 def select_plants_page():
-    a = [1, "ประเภทที่ 1", "ผักคะน้าฮ่องกง"]
-    b = [2, "ประเภทที่ 2", "ผักบุ้ง"]
-    data = (a, b)
-    # st.write(data)
-    n = 1
-    for i in data:
-        col1, col2, col3 = st.columns([1, 2, 2])
-        with col1:
-            st.markdown("### {}. {:03d}".format(n,i[0]))
-        with col2:
-            st.text("ประเภทพืช: ")
-            st.text("พืช: ")
-        with col3:
-            st.text(i[1])
-            st.text(i[2])
-        st.markdown("""---""")
-        n += 1
-
+    table_name = ("plants")
+    pk = ("plant_id")
+    col = ['รหัสพืช','พืช']
+    df = pd.DataFrame(plants_tb_select(),columns=col)
+    st.table(df['พืช'])
 
 def create_plans_page():
     with st.form("plans_form", clear_on_submit=True):
         plants_options = plants_tb_select()
-        st.subheader("แผนของพืช")
         plant_selected = st.selectbox(label="รายชื่อพืช", options=(plants_options),
                                       format_func=lambda plants_options: "{:03d}: {}".format(plants_options[0],
                                                                                              plants_options[1]))
-        st.subheader("ข้อมูลแผน")
         plan_year = int(st.number_input(label="ปีที่วางแผน", min_value=1900, max_value=9999, step=1, format="%d"))
         plan_check = plan_duplicate()
         duplicate_plan_check = True
@@ -142,13 +127,11 @@ def create_plans_page():
 
 def update_plans_page():
     update_plans_page_options = plans_tb_select()
-    st.subheader("เลือกข้อมูลแผน")
-    plan_selected = st.selectbox(label="กรุณาเลือกแผน", options=update_plans_page_options,
+    plan_selected = st.selectbox(label="กรุณาเลือกแผนที่ต้องการแก้ไข:", options=update_plans_page_options,
                                  format_func=lambda update_plans_page_options: "แผน{} ({})".format(
                                      update_plans_page_options[5], update_plans_page_options[0]))
-    st.subheader("ข้อมูลพืช")
     if plan_selected:
-        plan_year = st.number_input(label="แผนปีที่", min_value=1900, max_value=9999, step=1, format="%d",
+        plan_year = st.number_input(label="แผนปีที่ต้องการแก้ไข:", min_value=1900, max_value=9999, step=1, format="%d",
                                     value=plan_selected[0])
         st.markdown("""---""")
         plan_check = plan_duplicate()
@@ -179,21 +162,15 @@ def update_plans_page():
             st.experimental_rerun()
 
 def select_plans_page():
-    a = [1, "ผักคะน้าฮ่องกง", 2022]
-    b = [2, "ผักบุ้ง", 2023]
-    data = (a, b)
-    n = 1
-    for i in data:
-        col1, col2, col3 = st.columns([1, 2, 2])
-        with col1:
-            st.title(n)
-        with col2:
-            st.text("พืช: ")
-            st.text("ปีที่วางแผน: ")
-        with col3:
-            st.text(i[1])
-            st.text(i[2])
-        st.markdown("""---""")
-        n += 1
+    plant_options = plants_tb_select()
+    plant_options.append([0,'ทั้งหมด'])
+    # st.write(plant_options)
+    plant_selected = st.selectbox("เลือกพืช",options=plant_options,format_func=lambda plant_options:"{}".format(plant_options[1]))
+    # st.write(plant_selected)
+    data = plans_tb_select_all(plant_selected[0])
+    col = ['ชื่อพืช','แผนปีที่']
+    df = pd.DataFrame(data,columns=col)
+    st.table(df)
+    # st.dataframe(df['รหัสพืช','รหัสแผน','ปีที่วางแผน','วันทีสร้าง','วันที่แก้ไข'])
 
 main()
