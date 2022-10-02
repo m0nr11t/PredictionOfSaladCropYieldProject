@@ -74,14 +74,17 @@ def update_page():
     for rows in columns:
         if n == 2:
             date_selected = st.selectbox("วันที่แก้ไข",options=update_page_options,format_func=lambda update_page_options: "{}".format(update_page_options[1]))
-        if rows[2] == "double precision":
-            column_name = rows[0]
-            globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=float(0), format=("%f"), key=(str("edit_")+rows[0]),value=date_selected[n]))
-        elif rows[2] == "integer":
-            column_name = rows[0]
-            globals()[column_name] = int(st.number_input(label=rows[1], min_value=int(0), format=("%d"), step=1, key=(str("edit_")+rows[0]),value=date_selected[n]))
-        n += 1
-        sql_update = sql_update + rows[0] + str(" = '") + str(eval(rows[0])) + str("', ")
+        if date_selected[n] is None:
+            pass
+        else:
+            if rows[2] == "double precision":
+                column_name = rows[0]
+                globals()[column_name] = float(st.number_input(label=(rows[1]), min_value=float(0), format=("%f"), key=(str("edit_")+rows[0]),value=date_selected[n]))
+            elif rows[2] == "integer":
+                column_name = rows[0]
+                globals()[column_name] = int(st.number_input(label=rows[1], min_value=int(0), format=("%d"), step=1, key=(str("edit_")+rows[0]),value=date_selected[n]))
+            n += 1
+            sql_update = sql_update + rows[0] + str(" = '") + str(eval(rows[0])) + str("', ")
     sql_update = sql_update + str("updated_at = '") + str(updated_at) + str("'")
     where_update = ("WHERE date_input = '{}'".format(date_selected[1]))
     st.markdown("""---""")
