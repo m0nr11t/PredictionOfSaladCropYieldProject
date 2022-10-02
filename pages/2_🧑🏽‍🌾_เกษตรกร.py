@@ -1,5 +1,5 @@
 import streamlit as st
-import pyautogui
+# import pyautogui
 import time
 from calculate import prename_transform,timestamp,load_image
 from sql_execute import farmers_tb_insert,farmers_tb_select,tb_select_pil,farmers_tb_update, farmers_tb_delete
@@ -162,7 +162,7 @@ def update_page():
             farmers_tb_delete(farmer_selected[0])
             st.error("ลบข้อมูลสำเร็จ!")
             time.sleep(1.5)
-            pyautogui.hotkey("ctrl", "F5")
+            # pyautogui.hotkey("ctrl", "F5")
             st.experimental_rerun()
 
 def select_page():

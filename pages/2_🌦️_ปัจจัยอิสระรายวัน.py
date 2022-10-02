@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-import pyautogui
+# import pyautogui
 from calculate import timestamp
 from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input,variables_query,variable_update,variable_delete
 def main():
@@ -100,7 +100,7 @@ def update_page():
         variable_delete(table_name, where_delete)
         st.error("ลบข้อมูลสำเร็จ!")
         time.sleep(1.5)
-        pyautogui.hotkey("ctrl", "F5")
+        # pyautogui.hotkey("ctrl", "F5")
         st.experimental_rerun()
 
 def select_page():

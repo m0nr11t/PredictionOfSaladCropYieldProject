@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-import pyautogui
+# import pyautogui
 import time
 from calculate import timestamp, load_image
 from sql_execute import plants_tb_insert, plants_tb_select, tb_select_pil, plants_tb_update, plants_tb_delete,\
@@ -90,7 +90,7 @@ def update_plants_page():
         plants_tb_delete(plant_id)
         st.error("ลบข้อมูลสำเร็จ!")
         time.sleep(1.5)
-        pyautogui.hotkey("ctrl", "F5")
+        # pyautogui.hotkey("ctrl", "F5")
         st.experimental_rerun()
 
 
@@ -158,7 +158,7 @@ def update_plans_page():
             plans_tb_delete(plan_selected[3])
             st.error("ลบข้อมูลสำเร็จ!")
             time.sleep(1.5)
-            pyautogui.hotkey("ctrl", "F5")
+            # pyautogui.hotkey("ctrl", "F5")
             st.experimental_rerun()
 
 def select_plans_page():

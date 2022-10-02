@@ -1,5 +1,5 @@
 import streamlit as st
-import pyautogui
+# import pyautogui
 import time
 from calculate import timestamp,load_image
 from sql_execute import crops_options_select,crop_details_tb_select,\
@@ -169,7 +169,7 @@ def update_page():
             variable_delete(table_name, where_delete)
             st.error("ลบข้อมูลสำเร็จ!")
             time.sleep(1.5)
-            pyautogui.hotkey("ctrl", "F5")
+            # pyautogui.hotkey("ctrl", "F5")
             st.experimental_rerun()
 
 
