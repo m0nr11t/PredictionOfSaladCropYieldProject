@@ -4,9 +4,13 @@ import time
 from datetime import date,datetime,timedelta
 from sql_execute import plans_tb_select,crops_tb_insert,crop_number,crops_tb_select,crops_tb_update,crops_tb_delete,crops_tb_plans_select
 from calculate import timestamp
+st.set_page_config(
+    page_title="แผนการเพาะปลูกย่อย",
+    page_icon="📆"
+)
 
 def main():
-    st.title("แผนการเพาะปลูกโดยย่อย🔪")
+    st.subheader("แผนการเพาะปลูกโดยย่อย📆")
     select_page_tab, create_page_tab, update_page_tab = st.tabs(["📖 เรียกดูข้อมูล", "➕ เพิ่มข้อมูล", "📝 แก้ไขข้อมูล"])
     with select_page_tab:
         select_page()
@@ -72,26 +76,27 @@ def update_page():
 
 
 def select_page():
-    a = [1, 1, '2022-08-23', '2022-08-23', '2022-08-23', 5]
-    b = [2, 1, '2022-08-30', '2022-08-30', '2022-08-30', 5]
-    data = (a, b)
+    plans_options = crops_tb_plans_select()
+    plan_selected = st.selectbox(label="กรุณาเลือกแผน", options=plans_options,
+                                 format_func=lambda plans_options: "แผน{} ({})".format(plans_options[1],
+                                                                                       plans_options[0]),
+                                 key=("select_plan_id"))
+    data = crops_tb_select(plan_selected[2])
     n = 1
     for i in data:
         col1, col2, col3 = st.columns([1, 2, 2])
         with col1:
-            st.title("{}. {:03d}".format(n, i[0]))
+            st.markdown("### {}. {:03d}".format(i[7], i[5]))
         with col2:
             st.text("แผนการปลูก: ")
             st.text("วันที่เริ่มต้นแผนการปลูก: ")
-            st.text("วันที่สิ้นสุดแผนการปลูก: ")
             st.text("วันที่ย้ายแผนการปลูก: ")
-            st.text("จำนวนเกษตรกร: ")
+            st.text("วันที่สิ้นสุดแผนการปลูก: ")
         with col3:
+            st.text("{} ({})".format(plan_selected[1],plan_selected[0]))
+            st.text(i[0])
             st.text(i[1])
             st.text(i[2])
-            st.text(i[3])
-            st.text(i[4])
-            st.text(i[5])
         st.markdown("""---""")
         n += 1
 

@@ -50,7 +50,7 @@ def farmers_tb_select():
     db_connect, c = db_connection()
     sql_statement = """SELECT farmer_id, prename, firstname, lastname, farmer_gov_id, gov_id, tel, house_no, vil_no, vil_name, subdistrict_name, district_name, province_name, postcode,
                               farm_vil_no, farm_vil_name, farm_subdistrict_name, farm_district_name, farm_province_name, farm_geo_x, farm_geo_y, farm_geo_z,
-                           farm_land_privileges, farm_soil_analysis, farm_water_analysis, farm_gap_analysis, updated_at FROM farmers ORDER BY farmer_id;"""
+                           farm_land_privileges, farm_soil_analysis, farm_water_analysis, farm_gap_analysis FROM farmers ORDER BY farmer_id;"""
     c.execute(sql_statement)
     data = c.fetchall()
     db_connect.close()
@@ -291,6 +291,16 @@ def crop_details_tb_delete(crop_id, farmer_id):
     db_connect.commit()
     db_connect.close()
 
+def crop_detail_products_tb_select(crop_id):
+    db_connect, c = db_connection()
+    c.execute("""SELECT crop_details.crop_id, crop_details.farmer_id, firstname, lastname, farmer_gov_id,plant_weight_before_trim,plant_weight_after_trim FROM crop_details INNER JOIN farmers ON crop_details.farmer_id = farmers.farmer_id
+		INNER JOIN crops ON crop_details.crop_id = crops.crop_id
+		INNER JOIN crop_detail_products ON crop_details.crop_id = crop_detail_products.crop_id AND crop_details.farmer_id = crop_detail_products.farmer_id
+		WHERE crop_details.crop_id = {};""".format(crop_id))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
 def crop_detail_products_duplicate():
     db_connect, c = db_connection()
     c.execute("""SELECT crop_id, farmer_id FROM crop_detail_products""")
@@ -313,6 +323,16 @@ def variable_create_columns(column_table_name, column_name, column_datatype):
     c.execute("ALTER TABLE {} ADD COLUMN IF NOT EXISTS {} {};".format(column_table_name, column_name, column_datatype))
     db_connect.commit()
     db_connect.close()
+
+def independent_variables_tb_select():
+    db_connect, c = db_connection()
+    sql = sql_independent_variable_details_by_crop_argument()
+    sql = sql.replace("MAX","").replace("MIN","").replace("AVG","").replace("SUM","").replace("COUNT","").replace("(","").replace(")","")
+    c.execute("""SELECT date_input,{} FROM independent_variables;""".format(sql))
+    # st.write(sql)
+    data = c.fetchall()
+    db_connect.close()
+    return data
 
 def table_details_select(table_name):
     db_connect, c = db_connection()
@@ -477,11 +497,11 @@ def data_query_for_modeling(plant,independent_selected):
         db_connect.close()
         return data
 
-def models_tb_insert(plant_id,model,model_var,model_coef,model_intercept,model_name,created_at,updated_at):
+def models_tb_insert(plant_id,model,model_var,model_coef,model_intercept,model_name,model_rmse,model_r2,created_at,updated_at):
     db_connect, c = db_connection()
-    sql_statement = """INSERT INTO models(plant_id,model,model_var,model_coef,model_intercept,model_name,created_at,updated_at)
-                                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
-    values = (plant_id,model,model_var,model_coef,model_intercept,model_name,created_at,updated_at)
+    sql_statement = """INSERT INTO models(plant_id,model,model_var,model_coef,model_intercept,model_name,model_rmse,model_r2,created_at,updated_at)
+                                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+    values = (plant_id,model,model_var,model_coef,model_intercept,model_name,model_rmse,model_r2,created_at,updated_at)
     c.execute(sql_statement, values)
     db_connect.commit()
     db_connect.close()
@@ -495,7 +515,7 @@ def models_tb_options():
 
 def models_tb_select(model_id):
     db_connect, c = db_connection()
-    c.execute("""SELECT model_id,plant_id,model,model_var,model_coef,model_intercept,model_name FROM models
+    c.execute("""SELECT model_id,plant_id,model,model_var,model_coef,model_intercept,model_name,model_rmse,model_r2 FROM models
                     WHERE model_id = {};""".format(model_id))
     data = c.fetchone()
     db_connect.close()
@@ -588,6 +608,147 @@ def predict_arguments(crop_id,model_var_en):
                             AND crops.crop_id = dependent_crop.crop_id 
                             WHERE crops.crop_id = {}
                             LIMIT 1;""".format(sql_col_independent_variables_query,independent_var,sql_col_crop_details_variables_query,crop_details_var,crop_detail_products_var,crop_id))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def dashboard_select(plant_id,plan_year):
+    db_connect, c = db_connection()
+    if plan_year == 'ทั้งหมด':
+        plan_year = 0
+    if plant_id == 0 and plan_year == 0:
+        where_plant = ("")
+        where_year = ("")
+    elif plant_id == 0 and plan_year != 0:
+        where_plant = ("")
+        where_year = ("WHERE plans.plan_year = '{}'").format(plan_year)
+    elif plant_id != 0 and plan_year == 0:
+        where_plant = ("WHERE plants.plant_id = '{}'").format(plant_id)
+        where_year = ("")
+    else:
+        where_plant = ("WHERE plants.plant_id = '{}'").format(plant_id)
+        where_year = ("WHERE plans.plan_year = '{}'").format(plan_year)
+    sql_col_independent_variables_query = sql_independent_variable_details_by_crop_argument()
+    sql_col_crop_details_variables_query = sql_crop_details_by_crop_argument()
+    c.execute("""SELECT plants.plant_id,plants.plant_name,summary_data_by_plan.* FROM
+                            (SELECT PLANS.plant_id,PLANS.plan_year,summary_data_by_crop.* FROM
+                                (SELECT crops.plan_id,crops.crop_id,cropstart_date,cropfinish_date,independent_weather.*, independent_crop.*, dependent_crop.* FROM
+                                    (SELECT  c.crop_id,{} FROM independent_variables 
+                                                            RIGHT JOIN crops c 
+                                                                ON date_input BETWEEN cropstart_date AND cropfinish_date
+                                                            GROUP BY c.crop_id
+                                                            ORDER BY c.crop_id) AS independent_weather
+                                RIGHT JOIN
+                                    (SELECT c.crop_id,{} FROM farmers f
+                                                    INNER JOIN 
+                                                        crop_details cd 
+                                                    ON cd.farmer_id = f.farmer_id
+                                                    RIGHT JOIN 
+                                                        crops c
+                                                    ON cd.crop_id = c.crop_id
+                                                    GROUP BY c.crop_id
+                                                    ORDER BY c.crop_id) AS independent_crop
+                                ON independent_weather.crop_id = independent_crop.crop_id
+                                INNER JOIN		
+                                    (SELECT c.crop_id,SUM(plant_weight_before_trim) FROM crop_details cd 
+                                                    FULL OUTER JOIN 
+                                                        crop_detail_products cdp 
+                                                    ON cd.farmer_id = cdp.farmer_id AND cd.crop_id = cdp.crop_id
+                                                    RIGHT JOIN 
+                                                        crops c
+                                                    ON cd.crop_id = c.crop_id
+                                                    GROUP BY c.crop_id
+                                                    ORDER BY c.crop_id) AS dependent_crop
+                                ON independent_crop.crop_id = dependent_crop.crop_id
+                                RIGHT JOIN crops 
+                                ON crops.crop_id = independent_weather.crop_id 
+                                AND crops.crop_id = independent_crop.crop_id 
+                                AND crops.crop_id = dependent_crop.crop_id 
+                                ) AS summary_data_by_crop
+                            RIGHT JOIN 
+                            PLANS
+                            ON PLANS.plan_id = summary_data_by_crop.plan_id {}) AS summary_data_by_plan
+                        INNER JOIN 
+                        plants 
+                        ON summary_data_by_plan.plant_id = plants.plant_id {};""".format(sql_col_independent_variables_query,sql_col_crop_details_variables_query,where_year,where_plant))
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def plan_year_options_select(plant_id):
+    db_connect, c = db_connection()
+    if plant_id == 0:
+        sql_statement = (""" SELECT DISTINCT(plan_year) FROM PLANS INNER JOIN plants ON plants.plant_id = PLANS.plant_id ORDER BY plan_year;""")
+    else:
+        sql_statement = (""" SELECT plan_year FROM PLANS INNER JOIN plants ON plants.plant_id = PLANS.plant_id WHERE plans.plant_id = {} ORDER BY plan_year;""".format(plant_id))
+    c.execute(sql_statement)
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def farm_analysis_select(farm_name):
+    db_connect, c = db_connection()
+    if farm_name == 0:
+        sql_statement = """SELECT farm_vil_name, SUM(case when farm_soil_analysis  = TRUE then 1 else 0 end),
+                                 SUM(case when farm_water_analysis  = TRUE then 1 else 0 end), SUM(case when farm_gap_analysis = TRUE then 1 else 0 end) 
+                                 FROM farmers
+                                 GROUP BY farm_vil_name;"""
+    else:
+        sql_statement = """SELECT farm_vil_name, SUM(case when farm_soil_analysis  = TRUE then 1 else 0 end),
+                                         SUM(case when farm_water_analysis  = TRUE then 1 else 0 end), SUM(case when farm_gap_analysis = TRUE then 1 else 0 end) 
+                                         FROM farmers
+                                         WHERE farm_vil_name = '{}'
+                                         GROUP BY farm_vil_name;""".format(farm_name)
+    c.execute(sql_statement)
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def weight_year_by_vil(farm_vil_name,plant_id):
+    db_connect, c = db_connection()
+    if plant_id == 0:
+        sql_statement = """SELECT plan_year,SUM(plant_weight_before_trim) FROM crop_detail_products
+                            INNER JOIN farmers
+                            ON crop_detail_products.farmer_id = farmers.farmer_id 
+                            INNER JOIN crops
+                            ON crop_detail_products.crop_id =crops.crop_id
+                            INNER JOIN PLANS 
+                            ON PLANS.plan_id = crops.plan_id 
+                            INNER JOIN plants
+                            ON plants.plant_id = PLANS.plant_id 
+                            WHERE farmers.farm_vil_name = '{}'
+                            GROUP BY plan_year;""".format(farm_vil_name)
+    else:
+        sql_statement = """SELECT plan_year,SUM(plant_weight_before_trim) FROM crop_detail_products
+                            INNER JOIN farmers
+                            ON crop_detail_products.farmer_id = farmers.farmer_id 
+                            INNER JOIN crops
+                            ON crop_detail_products.crop_id =crops.crop_id
+                            INNER JOIN PLANS 
+                            ON PLANS.plan_id = crops.plan_id 
+                            INNER JOIN plants
+                            ON plants.plant_id = PLANS.plant_id 
+                            WHERE farmers.farm_vil_name = '{}' AND plants.plant_id = {}
+                            GROUP BY plan_year;""".format(farm_vil_name,plant_id)
+    c.execute(sql_statement)
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def farmer_lastname_select(farm_vil_name):
+    db_connect, c = db_connection()
+    if farm_vil_name == 0:
+        sql_statement = """SELECT farm_vil_name, SUM(case when farm_soil_analysis  = TRUE then 1 else 0 end),
+                                 SUM(case when farm_water_analysis  = TRUE then 1 else 0 end), SUM(case when farm_gap_analysis = TRUE then 1 else 0 end) 
+                                 FROM farmers
+                                 GROUP BY farm_vil_name;"""
+    else:
+        sql_statement = """SELECT farm_vil_name, SUM(case when farm_soil_analysis  = TRUE then 1 else 0 end),
+                                         SUM(case when farm_water_analysis  = TRUE then 1 else 0 end), SUM(case when farm_gap_analysis = TRUE then 1 else 0 end) 
+                                         FROM farmers
+                                         WHERE farm_vil_name = '{}'
+                                         GROUP BY farm_vil_name;""".format(farm_name)
+    c.execute(sql_statement)
     data = c.fetchall()
     db_connect.close()
     return data

@@ -4,10 +4,13 @@ import time
 from calculate import timestamp,load_image
 from sql_execute import crops_options_select,crop_details_tb_select,\
     crop_detail_products_duplicate,tb_select_pil,\
-    table_details_select,variables_query,db_connection,variable_update,variable_delete,variable_img_update
-
+    table_details_select,variables_query,db_connection,variable_update,variable_delete,variable_img_update,crop_detail_products_tb_select
+st.set_page_config(
+    page_title="ผลผลิตการเก็บเกี่ยว",
+    page_icon="🌰"
+)
 def main():
-    st.title("ผลผลิตการเก็บเกี่ยว🔪")
+    st.subheader("ผลผลิตการเก็บเกี่ยว🧺")
     select_page_tab, create_page_tab, update_page_tab = st.tabs(["📖 เรียกดูข้อมูล", "➕ เพิ่มข้อมูล", "📝 แก้ไขข้อมูล"])
     with select_page_tab:
         select_page()
@@ -177,24 +180,27 @@ def update_page():
 
 
 def select_page():
-    a = [1, 1, 20, 20, 10, 15]
-    b = [1, 1, 20, 20, 10, 15]
-    data = (a, b)
+    crop_options = crops_options_select()
+    crop_selected = st.selectbox(label="รหัสแผนการเพาะปลูกโดยย่อย", options=crop_options,
+                                 format_func=lambda crop_options: "แผน{} ({}) ครอปที่ {}".format(crop_options[1],
+                                                                                                 crop_options[2],
+                                                                                                 crop_options[3]),
+                                 key=("plan_options"))
+    data = crop_detail_products_tb_select(crop_selected[0])
+    # st.write(data)
     n = 1
     for i in data:
         col1, col2, col3 = st.columns([1, 2, 2])
         with col1:
-            st.title("{}. {:03d}".format(n, i[0]))
+            st.title("{}.".format(n))
         with col2:
-            st.text("รหัสแผนการเพาะปลูกโดยย่อย: ".format(i[1]))
-            st.text("ชื่อ: {}".format(i[1]))
-            st.text("น้ำหนักผลผลิตก่อนตัดแต่ง: ".format(i[1]))
-            st.text("จำนวนกล้า: ".format(i[1]))
+            st.text("รหัสเกษตรกร: {}".format(i[4]))
+            st.text("ชื่อ: {}".format(i[2]))
+            st.text("น้ำหนักผลผลิตก่อนตัดแต่ง: {} กก.".format(i[5]))
         with col3:
-            st.text(".")
-            st.text("นามสกุล: {}".format(i[1]))
-            st.text("น้ำหนักผลผลิตหลังตัดแต่ง: ".format(i[1]))
-            st.text("พื้นที่เพาะปลูก: ".format(i[1]))
+            st.markdown("# ")
+            st.text("นามสกุล: {}".format(i[3]))
+            st.text("น้ำหนักผลผลิตหลังตัดแต่ง: {} กก.".format(i[6]))
         st.markdown("""---""")
         n += 1
 

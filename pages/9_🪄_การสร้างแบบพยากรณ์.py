@@ -25,7 +25,7 @@ from sql_execute import plants_tb_select,table_details_select,data_query_for_mod
 from calculate import columns_name_for_dataframe,timestamp
 st.set_page_config(
     page_title="สร้างแบบจำลองการพยากรณ์",
-    page_icon="🪄",
+    page_icon="🔎",
     layout="wide"
 )
 
@@ -86,7 +86,7 @@ def main():
         st.text("""Y = {:.3f} {}""".format(model_intercept,coefficent_x_var))
 
         with st.expander("การวิเคราะห์ข้อมูลตัวแปรเบื้องต้น (Data Explore) ..."):
-            dt_status = st.checkbox("1. ชุดข้อมูล (Data Set):",value=False)
+            dt_status = st.checkbox("👈🏽 1. ชุดข้อมูล (Data Set):",value=False)
             if dt_status is True:
                 st.dataframe(df, width=2500)
                 st.markdown("---")
@@ -99,13 +99,13 @@ def main():
             # else:
             #     df = df_raw[inde_columns_selected]
             # st.dataframe(df)
-            describe_status = st.checkbox("2. ตารางอธิบายข้อมูล (Data Describe):", value=False)
+            describe_status = st.checkbox("👈🏽 2. ตารางอธิบายข้อมูล (Data Describe):", value=False)
             if describe_status is True:
                 st.table(df.describe().applymap('{:,.2f}'.format))
                 st.markdown("---")
             else:
                 pass
-            outlier_status = st.checkbox("3. การวิเคราะห์ค่านอกขอบเขต (Outliers):",value=False)
+            outlier_status = st.checkbox("👈🏽 3. การวิเคราะห์ค่านอกขอบเขต (Outliers):",value=False)
             if outlier_status is True:
                 outlier_independent_selected = st.selectbox(label="ค่านอกขอบเขตตัวแปรอิสระ:", options=independent_selected,
                                                   format_func=lambda independent_selected: "{}".format(
@@ -119,7 +119,7 @@ def main():
                 st.markdown("---")
             else:
                 pass
-            pairplot_status = st.checkbox("4. การวิเคราะห์ความสัมพันธ์เชิงเส้นจากแผนภาพ (Pairplot):",value=False,key="pairplot")
+            pairplot_status = st.checkbox("👈🏽 4. การวิเคราะห์ความสัมพันธ์เชิงเส้นจากแผนภาพ (Pairplot):",value=False,key="pairplot")
             if pairplot_status is True:
                 col1,col2,col3 = st.columns([1,1,1])
                 with col2:
@@ -133,14 +133,14 @@ def main():
                 st.markdown('---')
             else:
                 pass
-            corr_status = st.checkbox("5. การวิเคราะห์ค่าสหสัมพันธ์โดยวิธีการของเพียร์สัน (Pearson correlation):",value=False)
+            corr_status = st.checkbox("👈🏽 5. การวิเคราะห์ค่าสหสัมพันธ์โดยวิธีการของเพียร์สัน (Pearson correlation):",value=False)
             if corr_status is True:
                 df_corr = df.corr(method='pearson')
                 st.table(df_corr)
                 st.markdown('---')
             else:
                 pass
-            corr_heatmap_status = st.checkbox("6. การวิเคราะห์ความเป็นอิสระต่อกันของตัวแปร (Multicollinearity):",value=False)
+            corr_heatmap_status = st.checkbox("👈🏽 6. การวิเคราะห์ความเป็นอิสระต่อกันของตัวแปร (Multicollinearity):",value=False)
             if corr_heatmap_status is True:
                 df_corr_abs = X.corr(method='pearson').abs()
                 col1,col2,col3=st.columns([1,2,1])
@@ -161,13 +161,13 @@ def main():
                 # st.plotly_chart(fig, config=config)
             else:
                 pass
-            vif_status = st.checkbox("7. การวิเคราะห์หาค่าองค์ประกอบขยายความแปรปรวน (Variance Inflation Factor):",value=False)
+            vif_status = st.checkbox("👈🏽 7. การวิเคราะห์หาค่าองค์ประกอบขยายความแปรปรวน (Variance Inflation Factor):",value=False)
             if vif_status is True:
                 vif_tb = pd.DataFrame()
                 vif_tb["ค่าองค์ประกอบขยายความแปรปรวน(VIF)"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
                 vif_tb["ตัวแปรอิสระ"] = X.columns
                 st.table(vif_tb)
-            dist_status = st.checkbox("8. การวิเคราะห์การกระจายตัวของข้อมูล (Data Distribution):",value=False)
+            dist_status = st.checkbox("👈🏽 8. การวิเคราะห์การกระจายตัวของข้อมูล (Data Distribution):",value=False)
             if dist_status is True:
                 col1, col2, col3 = st.columns([1,2,1])
                 with col2:
@@ -225,7 +225,7 @@ def main():
                 save_clicked = st.button("บันทึกโมเดล")
             if save_clicked:
                 model_coef = coef.values.tolist()
-                models_tb_insert(plant_selected[0], model, model_var, model_coef, model_intercept, model_name,
+                models_tb_insert(plant_selected[0], model, model_var, model_coef, model_intercept, model_name,RMSE,R2,
                                  created_at, updated_at)
                 st.success("เพิ่มแบบจำลองสำเร็จ")
                 time.sleep(1.5)

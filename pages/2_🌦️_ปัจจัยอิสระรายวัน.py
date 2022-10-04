@@ -1,8 +1,14 @@
+import pandas as pd
 import streamlit as st
 import time
 # import pyautogui
 from calculate import timestamp
-from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input,variables_query,variable_update,variable_delete
+from sql_execute import table_details_select,db_connection,independent_var_duplicate_date_input,variables_query,variable_update,variable_delete,\
+independent_variables_tb_select,columns_name_independent_weather,sql_independent_variable_details_by_crop_argument
+st.set_page_config(
+    page_title="ปัจจัยอิสระรายวัน",
+    page_icon="🌦️"
+)
 def main():
     st.subheader("ข้อมูลตัวแปรอิสระ (รายวัน)🌦️")
     select_page_tab, create_page_tab, update_page_tab = st.tabs(
@@ -107,28 +113,13 @@ def update_page():
         st.experimental_rerun()
 
 def select_page():
-    a = [1, 1, '2022-08-23', '2022-08-23', '2022-08-23', 5]
-    b = [2, 1, '2022-08-30', '2022-08-30', '2022-08-30', 5]
-    data = (a, b)
-    n = 1
-    for i in data:
-        col1, col2, col3 = st.columns([1, 2, 2])
-        with col1:
-            # st.title("{}. {:03d}".format(n, i[0]))
-            pass
-        with col2:
-            st.text("แผนการปลูก: ")
-            st.text("วันที่เริ่มต้นแผนการปลูก: ")
-            st.text("วันที่สิ้นสุดแผนการปลูก: ")
-            st.text("วันที่ย้ายแผนการปลูก: ")
-            st.text("จำนวนเกษตรกร: ")
-        with col3:
-            st.text(i[1])
-            st.text(i[2])
-            st.text(i[3])
-            st.text(i[4])
-            st.text(i[5])
-        st.markdown("""---""")
-        n += 1
+    data = independent_variables_tb_select()
+    col_name = columns_name_independent_weather()
+    col_name.insert(0,'วันที่')
+    # st.dataframe(col_name)
+    # st.write(data)
+    df = pd.DataFrame(data,columns=col_name)
+    df = df.set_index('วันที่')
+    st.dataframe(df)
 
 main()

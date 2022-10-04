@@ -22,6 +22,8 @@ def main():
         model_coef = model_dt[4]
         model_intercept = model_dt[5]
         model_name = model_dt[6]
+        model_rmse = model_dt[7]
+        model_r2 = model_dt[8]
     with col2:
         crop_predict_options = crop_can_predict_options(model_selected[1])
         crop_predict_selected = st.selectbox("2️⃣เลือกครอปที่ต้องการพยากรณ์:",options=crop_predict_options,format_func=lambda crop_predict_options:"ปี {} ครอปที่ {}".format(crop_predict_options[2],crop_predict_options[4]))
@@ -40,7 +42,7 @@ def main():
         col1,col2 = st.columns([1,1])
         with col1:
             st.markdown("🧙🏽‍♂️**คาดว่าจะได้รับปริมาณผลผลิต** {:.02f} กก.".format(predicted[0]))
-            st.caption("**โมเดลนี้มีความคลาดเคลื่อน")
+            st.caption("**โมเดลนี้มีความคลาดเคลื่อน {:.02f} กิโลกรัม".format(model_rmse))
         with col2:
             st.markdown("**ข้อมูลแผนการเก็บเกี่ยว**🥦")
             st.text("🌱 พืช: {}".format(crop_predict_selected[1]))
@@ -63,7 +65,7 @@ def main():
                 n += 1
             st.markdown("**รูปสมการ:**")
             st.text("""ปริมาณผลผลิต = {:.3f} {}""".format(model_intercept, coefficent_x_var))
-            if st.checkbox("ดูข้อมูล:",value=False):
+            if st.checkbox("👈🏽ดูข้อมูล",value=False):
                 st.write(model_arguments)
             st.markdown("**อธิบายได้ว่า**")
             n=0
@@ -77,17 +79,17 @@ def main():
             with col1:
                 weight = st.number_input("ปริมาณผลผลิตที่ต้องการ:",min_value=0.00,format=("%f"))
             with col2:
-                control = st.selectbox("ปัจจัยอิสระที่ควบคุมได้:",options=(model_var_en),format_func=lambda model_var_en:"{}".format(model_var_en[1]))
+                control = st.selectbox("ปัจจัยอิสระที่ควบคุมได้:",options=(model_var),format_func=lambda model_var:"{}".format(model_var))
             st.markdown("**ระดับควรที่ควบคุม**")
             col = []
-            for i in model_var_en:
-                col.append(i[0])
+            for i in model_var:
+                col.append(i)
             model_arguments.columns=col
             equation = ("")
             n =0
             for col_name in (model_arguments):
                 value = model_arguments[col_name].tolist()
-                if col_name == control[0]:
+                if col_name == control:
                     value = str("x")
                 else:
                     value = value[0]
@@ -98,12 +100,12 @@ def main():
                     equation = ("- ({} * {})".format(coef,value)) + equation
                 n += 1
             equation = str(weight) + str(" = ") + str(model_intercept) + equation
-            st.write(equation)
+            # st.write(equation)
             answer = solve(equation)
             if answer == "No solution":
-                st.error("ขออภัยปัจจัยควบคุมได้ที่คุณเลือก ไม่ได้มีความสำคัญกับโมเดลนี้ โปรดสร้างโมเดลใหม่อีกครั้ง หรือเลือกปัจจัยอื่น")
+                st.error("ขออภัยปัจจัยควบคุมได้ที่คุณเลือก ไม่ได้มีความสัมพันธ์ต่อโมเดลนี้ โปรดสร้างโมเดลใหม่อีกครั้ง หรือเลือกปัจจัยอื่น")
             else:
-                st.markdown(answer)
-            st.caption("**โมเดลที่คุณเลือกมีความเชื่อมั่น")
-
+                st.markdown("คุณควรควบคุม{}ในระดับ {} หน่วย".format(control,round(float(answer),2)))
+            st.caption("*โมเดลที่คุณเลือกมีค่าความเชื่อมั่นที่ตัวแปรอิสระสามารถอธิบายตัวแปรตามได้ {}% ".format(round(model_r2,2)*100))
+            st.caption("**โปรดมั่นใจว่าตัวแปรอิสระตัวอื่นต้องอยู่ในระดับคงที่")
 main()
