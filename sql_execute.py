@@ -737,17 +737,9 @@ def weight_year_by_vil(farm_vil_name,plant_id):
 
 def farmer_lastname_select(farm_vil_name):
     db_connect, c = db_connection()
-    if farm_vil_name == 0:
-        sql_statement = """SELECT farm_vil_name, SUM(case when farm_soil_analysis  = TRUE then 1 else 0 end),
-                                 SUM(case when farm_water_analysis  = TRUE then 1 else 0 end), SUM(case when farm_gap_analysis = TRUE then 1 else 0 end) 
-                                 FROM farmers
-                                 GROUP BY farm_vil_name;"""
-    else:
-        sql_statement = """SELECT farm_vil_name, SUM(case when farm_soil_analysis  = TRUE then 1 else 0 end),
-                                         SUM(case when farm_water_analysis  = TRUE then 1 else 0 end), SUM(case when farm_gap_analysis = TRUE then 1 else 0 end) 
-                                         FROM farmers
-                                         WHERE farm_vil_name = '{}'
-                                         GROUP BY farm_vil_name;""".format(farm_name)
+    sql_statement = """SELECT lastname, count(lastname)  FROM farmers
+                            WHERE farm_vil_name = '{}'
+                            GROUP BY lastname;""".format(farm_vil_name)
     c.execute(sql_statement)
     data = c.fetchall()
     db_connect.close()

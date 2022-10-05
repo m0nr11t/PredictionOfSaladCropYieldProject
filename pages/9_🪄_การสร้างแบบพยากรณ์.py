@@ -52,6 +52,7 @@ def main():
                                                   independent_options[1]), default=independent_options)
         dt = data_query_for_modeling(plant_selected[0],independent_selected)
         df_raw = pd.DataFrame(dt, columns=columns_name)
+        df_raw = df_raw.dropna()
         inde_columns_selected = []
         for rows in independent_selected:
             inde_columns_selected.append(rows[1])
