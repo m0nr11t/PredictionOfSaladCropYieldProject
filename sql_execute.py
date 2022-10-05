@@ -744,3 +744,21 @@ def farmer_lastname_select(farm_vil_name):
     data = c.fetchall()
     db_connect.close()
     return data
+
+def download(table_name):
+    db_connect, c = db_connection()
+    sql_statement = """SELECT * FROM {};""".format(table_name)
+    c.execute(sql_statement)
+    data = c.fetchall()
+    db_connect.close()
+    return data
+
+def download_columns(table_name):
+    db_connect, c = db_connection()
+    sql_statement = """SELECT column_name 
+                        FROM information_schema.columns
+                          WHERE table_name   = '{}';""".format(table_name)
+    c.execute(sql_statement)
+    data = c.fetchall()
+    db_connect.close()
+    return data
