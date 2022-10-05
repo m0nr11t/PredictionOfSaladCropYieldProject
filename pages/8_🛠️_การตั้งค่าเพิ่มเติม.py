@@ -79,5 +79,4 @@ def download_data():
             file_name='{}_{}.csv'.format(download_selected[1],Date),
             mime='text/csv',
         )
-
 main()

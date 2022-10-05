@@ -762,3 +762,21 @@ def download_columns(table_name):
     data = c.fetchall()
     db_connect.close()
     return data
+
+def gender_number(farm_name):
+    db_connect, c = db_connection()
+    sql_statement = """ SELECT farm_vil_name,COUNT(farmer_id) FROM farmers 
+                         WHERE prename = 'นาย' AND farm_vil_name = 'ปางมะกล้วย'
+                         GROUP BY farm_vil_name;"""
+    c.execute(sql_statement)
+    male_dt = c.fetchall()
+    sql_statement = """  SELECT farm_vil_name,COUNT(farmer_id) FROM farmers 
+                             (prename = 'นาง' OR prename = 'นางสาว')
+                             AND farm_vil_name = 'ปางมะกล้วย'
+                             GROUP BY farm_vil_name ;"""
+    c.execute(sql_statement)
+    female_dt = c.fetchall()
+    db_connect.close()
+    df = pd.DataFrame([male_dt,female_dt])
+    st.dataframe(df)
+    return df
