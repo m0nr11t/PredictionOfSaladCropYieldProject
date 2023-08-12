@@ -15,10 +15,10 @@ font_files = font_manager.findSystemFonts(fontpaths = ['C:/Users/monmo/Downloads
 for file in font_files:
     font_manager.fontManager.addfont(file)
 sns.set_theme(font="Kanit")
-import scikitlearn as sk
-from scikitlearn.linear_model import LinearRegression
-from scikitlearn.model_selection import train_test_split
-from scikitlearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import scikit-learn as sk
+from scikit-learn.linear_model import LinearRegression
+from scikit-learn.model_selection import train_test_split
+from scikit-learn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sql_execute import plants_tb_select,table_details_select,data_query_for_modeling,columns_name_independent_weather,columns_name_independent_crop,models_tb_insert
